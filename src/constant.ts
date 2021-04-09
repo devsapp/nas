@@ -13,6 +13,31 @@ export const REQUESTOPTION = {
   method: 'POST',
 };
 
+export const HELP = [
+  {
+    header: 'Options',
+    optionList: [
+      {
+        name: 'help',
+        description: '使用引导',
+        alias: 'h',
+        type: Boolean,
+      },
+    ],
+  },
+  {
+    header: 'Examples',
+    content: [
+      {
+        example: '$ s exec -- deploy',
+      },
+      {
+        example: '$ s exec -- remove',
+      },
+    ],
+  },
+]
+
 export const LSHELP = [
   {
     header: 'Options',
@@ -44,7 +69,7 @@ export const LSHELP = [
     content: [
       {
         desc: '使用: nas ls [options] <fc_dir>',
-        example: '$ nas ls nas://<fc_dir>',
+        example: '$ nas ls nas:///<nas_dir>',
       },
     ],
   },

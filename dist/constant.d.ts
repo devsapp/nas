@@ -9,6 +9,22 @@ export declare const RETRYOPTIONS: {
 export declare const REQUESTOPTION: {
     method: string;
 };
+export declare const HELP: ({
+    header: string;
+    optionList: {
+        name: string;
+        description: string;
+        alias: string;
+        type: BooleanConstructor;
+    }[];
+    content?: undefined;
+} | {
+    header: string;
+    content: {
+        example: string;
+    }[];
+    optionList?: undefined;
+})[];
 export declare const LSHELP: ({
     header: string;
     optionList: ({
