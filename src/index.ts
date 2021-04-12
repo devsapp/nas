@@ -2,13 +2,12 @@ import {
   HLogger,
   ILogger,
   getCredential,
-  IV1Inputs,
   help,
   commandParse,
 } from '@serverless-devs/core';
 import _ from 'lodash';
 import * as constant from './constant';
-import { ICredentials, IProperties, isCredentials, ICommandParse } from './interface';
+import { IInputs, IProperties, ICommandParse } from './interface';
 import Nas from './utils/nas';
 import Common from './utils/common';
 import Version from './utils/version';
@@ -19,37 +18,21 @@ import { parseNasUri } from './utils/common/utils';
 export default class NasCompoent {
   @HLogger(constant.CONTEXT) logger: ILogger;
 
-  async getCredentials(
-    credentials: {} | ICredentials,
-    provider: string,
-    accessAlias?: string,
-  ): Promise<ICredentials> {
-    this.logger.debug(
-      `Obtain the key configuration, whether the key needs to be obtained separately: ${_.isEmpty(
-        credentials,
-      )}`,
-    );
-    if (isCredentials(credentials)) {
-      return credentials;
-    }
-    return await getCredential(provider, accessAlias);
-  }
-
-  async deploy(inputs: IV1Inputs, isNasServerStale: boolean) {
+  async deploy(inputs: IInputs, isNasServerStale: boolean) {
     this.logger.debug('Create nas start...');
+    this.logger.debug(`inputs params: ${JSON.stringify(inputs)}`);
 
-    const {
-      ProjectName: projectName,
-      Provider: provider,
-      AccessAlias: accessAlias,
-    } = inputs.Project;
+    const apts = { boolean: ['help'], alias: { help: 'h' } };
+    const commandData: any = commandParse({ args: inputs.args }, apts);
+    this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
+    if (commandData.data?.help) {
+      help(constant.HELP);
+      return;
+    }
 
-    this.logger.debug(`[${projectName}] inputs params: ${JSON.stringify(inputs)}`);
+    const credentials = await getCredential(inputs.credentials?.Alias);
 
-    const credentials = await this.getCredentials(inputs.Credentials, provider, accessAlias);
-    inputs.Credentials = credentials;
-
-    const properties: IProperties = _.cloneDeep(inputs.Properties);
+    const properties: IProperties = _.cloneDeep(inputs.props);
     this.logger.debug(`Properties values: ${JSON.stringify(properties)}.`);
 
     let mountPointDomain: string;
@@ -67,12 +50,12 @@ export default class NasCompoent {
     }
     this.logger.debug(`Create nas success, mountPointDomain: ${mountPointDomain}`);
 
-    const mountDir = getMountDir(mountPointDomain, inputs.Properties.nasDir);
-    inputs.Properties.nasDir = nasUriHandler(inputs.Properties.nasDir);
+    const mountDir = getMountDir(mountPointDomain, inputs.props.nasDir);
+    inputs.props.nasDir = nasUriHandler(inputs.props.nasDir);
 
     this.logger.debug(`Whether to open the service configuration: ${!isNasServerStale}`);
     if (!isNasServerStale) {
-      inputs.Properties.mountDir = mountDir;
+      inputs.props.mountDir = mountDir;
       const fc = new FcResources(properties.regionId, credentials);
       await fc.init(inputs, mountPointDomain);
     }
@@ -80,39 +63,33 @@ export default class NasCompoent {
     return { mountPointDomain, fileSystemId, mountDir };
   }
 
-  async remove(inputs: IV1Inputs) {
+  async remove(inputs: IInputs) {
     this.logger.debug('Remove nas start...');
+    this.logger.debug(`inputs params: ${JSON.stringify(inputs)}`);
 
-    const {
-      ProjectName: projectName,
-      Provider: provider,
-      AccessAlias: accessAlias,
-    } = inputs.Project;
+    const apts = { boolean: ['help'], alias: { help: 'h' } };
+    const commandData: any = commandParse({ args: inputs.args }, apts);
+    this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
+    if (commandData.data?.help) {
+      help(constant.HELP);
+      return;
+    }
 
-    this.logger.debug(`[${projectName}] inputs params: ${JSON.stringify(inputs)}`);
-
-    const regionId = inputs.Properties.regionId;
-    const credentials = await this.getCredentials(inputs.Credentials, provider, accessAlias);
-    inputs.Credentials = credentials;
+    const regionId = inputs.props.regionId;
+    const credentials = await getCredential(inputs.credentials?.Alias);
 
     const fc = new FcResources(regionId, credentials);
     await fc.remove(inputs);
 
     const nas = new Nas(regionId, credentials);
-    await nas.remove(inputs.Properties);
+    await nas.remove(inputs.props);
   }
 
-  async ls(inputs: IV1Inputs) {
-    const {
-      ProjectName: projectName,
-      Provider: provider,
-      AccessAlias: accessAlias,
-    } = inputs.Project;
+  async ls(inputs: IInputs) {
+    this.logger.debug(`inputs params: ${JSON.stringify(inputs)}`);
 
-    this.logger.debug(`[${projectName}] inputs params: ${JSON.stringify(inputs)}`);
-
-    const apts = { boolean: ['a', 'all', 'l', 'long'], alias: { all: 'a', long: 'l' } };
-    const { data: commandData = {} }: ICommandParse = commandParse({ args: inputs.Args }, apts);
+    const apts = { boolean: ['all', 'long', 'help'], alias: { help: 'h', all: 'a', long: 'l' } };
+    const { data: commandData = {} }: ICommandParse = commandParse({ args: inputs.args }, apts);
     this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
 
     if (commandData.help) {
@@ -125,9 +102,8 @@ export default class NasCompoent {
       serviceName,
       functionName = constant.FUNNAME,
       nasDir: nasDirYmlInput,
-    } = inputs.Properties;
-    const credentials = await this.getCredentials(inputs.Credentials, provider, accessAlias);
-    inputs.Credentials = credentials;
+    } = inputs.props;
+    const credentials = await getCredential(inputs.credentials?.Alias);
 
     const isNasServerStale = await Version.isNasServerStale(
       credentials,
@@ -159,20 +135,14 @@ export default class NasCompoent {
     });
   }
 
-  async rm(inputs: IV1Inputs) {
-    const {
-      ProjectName: projectName,
-      Provider: provider,
-      AccessAlias: accessAlias,
-    } = inputs.Project;
-
-    this.logger.debug(`[${projectName}] inputs params: ${JSON.stringify(inputs)}`);
+  async rm(inputs: IInputs) {
+    this.logger.debug(`inputs params: ${JSON.stringify(inputs)}`);
 
     const apts = {
-      boolean: ['r', 'recursive', 'f', 'force'],
-      alias: { recursive: 'r', force: 'f' },
+      boolean: ['recursive', 'force', 'help'],
+      alias: { recursive: 'r', force: 'f', help: 'h' },
     };
-    const { data: commandData = {} }: ICommandParse = commandParse({ args: inputs.Args }, apts);
+    const { data: commandData = {} }: ICommandParse = commandParse({ args: inputs.args }, apts);
     this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
 
     const argv_paras = commandData._ || [];
@@ -187,9 +157,8 @@ export default class NasCompoent {
       serviceName,
       functionName = constant.FUNNAME,
       nasDir: nasDirYmlInput,
-    } = inputs.Properties;
-    const credentials = await this.getCredentials(inputs.Credentials, provider, accessAlias);
-    inputs.Credentials = credentials;
+    } = inputs.props;
+    const credentials = await getCredential(inputs.credentials?.Alias);
 
     const isNasServerStale = await Version.isNasServerStale(
       credentials,
@@ -212,24 +181,19 @@ export default class NasCompoent {
       functionName,
       isRootDir,
       targetPath: isRootDir ? mountDir : targetPath,
-      recursive: commandData.r,
-      force: commandData.f,
+      recursive: commandData.recursive,
+      force: commandData.force,
     });
   }
 
-  async cp(inputs: IV1Inputs) {
-    const {
-      ProjectName: projectName,
-      Provider: provider,
-      AccessAlias: accessAlias,
-    } = inputs.Project;
-    this.logger.debug(`[${projectName}] inputs params: ${JSON.stringify(inputs)}`);
+  async cp(inputs: IInputs) {
+    this.logger.debug(`inputs params: ${JSON.stringify(inputs)}`);
 
     const apts = {
-      boolean: ['recursive', 'r', 'no-clobber', 'n'],
-      alias: { recursive: 'r', 'no-clobber': 'n' },
+      boolean: ['recursive', 'help', 'no-clobber'],
+      alias: { recursive: 'r', 'no-clobber': 'n', help: 'h' },
     };
-    const { data: commandData = {} }: ICommandParse = commandParse({ args: inputs.Args }, apts);
+    const { data: commandData = {} }: ICommandParse = commandParse({ args: inputs.args }, apts);
     this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
 
     const argv_paras = commandData._ || [];
@@ -244,9 +208,8 @@ export default class NasCompoent {
       functionName = constant.FUNNAME,
       nasDir: nasDirYmlInput,
       excludes,
-    } = inputs.Properties;
-    const credentials = await this.getCredentials(inputs.Credentials, provider, accessAlias);
-    inputs.Credentials = credentials;
+    } = inputs.props;
+    const credentials = await getCredential(inputs.credentials?.Alias);
 
     const isNasServerStale = await Version.isNasServerStale(
       credentials,

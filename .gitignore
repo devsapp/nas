@@ -18,3 +18,5 @@ lib
 !fc/src
 !s-zip/src
 package-lock.json
+**/nas-server/dist
+!**/nas-server/lib

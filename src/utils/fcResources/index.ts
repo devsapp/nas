@@ -1,10 +1,10 @@
-import { HLogger, ILogger, IV1Inputs, IInputs, loadComponent } from '@serverless-devs/core';
+import { HLogger, ILogger, loadComponent } from '@serverless-devs/core';
 import _ from 'lodash';
 import path from 'path';
 import Version from '../version';
 import { fcClient } from '../client';
 import { CONTEXT, FUNNAME } from '../../constant';
-import { ICredentials } from '../../interface';
+import { IInputs, ICredentials } from '../../interface';
 import { IFcConfig } from './interface';
 import { sleep } from '../utils';
 
@@ -26,7 +26,7 @@ export default class Resources {
     this.profile = profile;
   }
 
-  async init(inputs: IV1Inputs, mountPointDomain: string) {
+  async init(inputs: IInputs, mountPointDomain: string) {
     this.fcBase = await loadComponent('alibaba/fc-base');
 
     await this.deployEnsureNasDir(inputs, mountPointDomain);
@@ -34,7 +34,7 @@ export default class Resources {
     await this.deployNasService(inputs, mountPointDomain);
   }
 
-  async remove(inputs: IV1Inputs) {
+  async remove(inputs: IInputs) {
     const fcBase = await loadComponent('alibaba/fc-base');
 
     const nasServiceInputs = await this.transformYamlConfigToFcbaseConfig(inputs, '', false);
@@ -46,7 +46,7 @@ export default class Resources {
     await fcBase.remove(ensureNasDirInputs);
   }
 
-  async deployNasService(inputs: IV1Inputs, mountPointDomain: string) {
+  async deployNasService(inputs: IInputs, mountPointDomain: string) {
     const nasServiceInputs = await this.transformYamlConfigToFcbaseConfig(
       inputs,
       mountPointDomain,
@@ -59,7 +59,7 @@ export default class Resources {
     await sleep(5000);
   }
 
-  async deployEnsureNasDir(inputs: IV1Inputs, mountPointDomain: string) {
+  async deployEnsureNasDir(inputs: IInputs, mountPointDomain: string) {
     const ensureNasDirInputs = await this.transformYamlConfigToFcbaseConfig(
       inputs,
       mountPointDomain,
@@ -69,8 +69,8 @@ export default class Resources {
     await this.fcBase.deploy(ensureNasDirInputs);
     await sleep(1000);
 
-    const f = ensureNasDirInputs.properties.function;
-    const { mountDir, nasDir } = inputs.Properties;
+    const f = ensureNasDirInputs.props.function;
+    const { mountDir, nasDir } = inputs.props;
 
     this.logger.debug(
       `Invoke fc function, service name is: ${f.service}, function name is: ${
@@ -85,11 +85,11 @@ export default class Resources {
   }
 
   async transformYamlConfigToFcbaseConfig(
-    inputs,
+    inputs: IInputs,
     mountPointDomain: string,
     isEnsureNasDirExist: boolean,
   ) {
-    const output: IInputs = {};
+    const output: any = inputs;
 
     const {
       regionId,
@@ -103,14 +103,14 @@ export default class Resources {
       nasDir,
       userId = 10003,
       groupId = 10003,
-    } = inputs?.properties || inputs?.Properties;
+    } = inputs.props;
 
     const service = isEnsureNasDirExist
       ? `${serviceName}-${ENSURENASDIREXISTSERVICE}`
       : serviceName;
     const funName = isEnsureNasDirExist ? ENSURENASDIREXISTFUNCTION : functionName;
 
-    const properties: IFcConfig = {
+    const props: IFcConfig = {
       region: regionId,
       service: {
         name: service,
@@ -142,7 +142,7 @@ export default class Resources {
     };
 
     if (!isEnsureNasDirExist) {
-      properties.triggers = [
+      props.triggers = [
         {
           name: 'httpTrigger',
           function: funName,
@@ -166,8 +166,7 @@ export default class Resources {
     });
 
     output.credentials = this.profile;
-    output.project.component = 'fc-base';
-    output.properties = properties;
+    output.props = props;
     output.args += ' -s -y';
 
     return output;
