@@ -4,7 +4,7 @@ access: aliyun-release  #  秘钥别名
 
 services:
   nas-test: #  服务名称
-    component: logs  # 组件名称
+    component: nas  # 组件名称
     props: #  组件的属性值
       regionId: cn-shenzhen
       # 辅助函数使用
