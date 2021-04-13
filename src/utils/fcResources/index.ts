@@ -27,7 +27,7 @@ export default class Resources {
   }
 
   async init(inputs: IInputs, mountPointDomain: string) {
-    this.fcBase = await loadComponent('fc-base');
+    this.fcBase = await loadComponent('fc-base@0.0.3');
 
     await this.deployEnsureNasDir(inputs, mountPointDomain);
 
@@ -35,20 +35,20 @@ export default class Resources {
   }
 
   async remove(inputs: IInputs) {
-    const fcBase = await loadComponent('fc-base');
+    const fcBase = await loadComponent('fc-base@0.0.3');
 
-    const nasServiceInputs = await this.transformYamlConfigToFcbaseConfig(inputs, '', false);
+    const nasServiceInputs = await this.transformYamlConfigToFcbaseConfig(_.cloneDeep(inputs), '', false);
     nasServiceInputs.args = 'service -s -y';
     await fcBase.remove(nasServiceInputs);
 
-    const ensureNasDirInputs = await this.transformYamlConfigToFcbaseConfig(inputs, '', true);
+    const ensureNasDirInputs = await this.transformYamlConfigToFcbaseConfig(_.cloneDeep(inputs), '', true);
     ensureNasDirInputs.args = 'service -s -y';
     await fcBase.remove(ensureNasDirInputs);
   }
 
   async deployNasService(inputs: IInputs, mountPointDomain: string) {
     const nasServiceInputs = await this.transformYamlConfigToFcbaseConfig(
-      inputs,
+      _.cloneDeep(inputs),
       mountPointDomain,
       false,
     );
@@ -61,7 +61,7 @@ export default class Resources {
 
   async deployEnsureNasDir(inputs: IInputs, mountPointDomain: string) {
     const ensureNasDirInputs = await this.transformYamlConfigToFcbaseConfig(
-      inputs,
+      _.cloneDeep(inputs),
       mountPointDomain,
       true,
     );

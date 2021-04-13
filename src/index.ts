@@ -15,6 +15,8 @@ import FcResources from './utils/fcResources';
 import { getMountDir, nasUriHandler } from './utils/utils';
 import { parseNasUri } from './utils/common/utils';
 
+process.setMaxListeners(0);
+
 export default class NasCompoent {
   @HLogger(constant.CONTEXT) logger: ILogger;
 
