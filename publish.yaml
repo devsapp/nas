@@ -2,7 +2,7 @@ Type: Component
 Name: nas
 Provider:
   - 阿里云
-Version: 0.0.3
+Version: 0.0.4
 Description: 阿里云NAS产品工具
 HomePage: https://github.com/devsapp/nas
 Tags: #标签详情
