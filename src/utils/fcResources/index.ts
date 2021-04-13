@@ -27,7 +27,7 @@ export default class Resources {
   }
 
   async init(inputs: IInputs, mountPointDomain: string) {
-    this.fcBase = await loadComponent('fc-base@0.0.3');
+    this.fcBase = await loadComponent('fc-base');
 
     await this.deployEnsureNasDir(inputs, mountPointDomain);
 
@@ -35,7 +35,7 @@ export default class Resources {
   }
 
   async remove(inputs: IInputs) {
-    const fcBase = await loadComponent('fc-base@0.0.3');
+    const fcBase = await loadComponent('fc-base');
 
     const nasServiceInputs = await this.transformYamlConfigToFcbaseConfig(_.cloneDeep(inputs), '', false);
     nasServiceInputs.args = 'service -s -y';
