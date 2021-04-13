@@ -19,5 +19,5 @@ s rm -r nas:///WSS-NasTest/f
 # 删除所有的文件
 s rm -r nas:///WSS-NasTest/.
 
-s delete
+s remove
 ````

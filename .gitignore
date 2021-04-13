@@ -20,3 +20,4 @@ lib
 package-lock.json
 **/nas-server/dist
 !**/nas-server/lib
+examples/**/.s
