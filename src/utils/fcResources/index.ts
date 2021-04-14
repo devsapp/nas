@@ -136,8 +136,12 @@ export default class Resources {
         name: funName,
         handler: 'index.handler',
         timeout: 600,
+        memorySize: 256,
         filename: isEnsureNasDirExist ? ENSURENASDIREXISTFILENAME : await getNasServerFile(),
-        runtime: 'nodejs8',
+        runtime: 'nodejs12',
+        environmentVariables: {
+          PATH: '/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/code/bin'
+        }
       },
     };
 

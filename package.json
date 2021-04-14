@@ -33,7 +33,7 @@
   "scripts": {
     "dev": "npx tsc -w -p tsconfig.json",
     "prebuild": "rimraf dist",
-    "package-zip": "make -C ./src/utils/fcResources/ensure-nas-dir-exist package && make -C ./src/utils/fcResources/nas-server package",
+    "package-zip": "rm -rf ./dist/utils/fcResources/nas-server-*.zip && make -C ./src/utils/fcResources/ensure-nas-dir-exist package && make -C ./src/utils/fcResources/nas-server package",
     "build": "npx tsc -p tsconfig.json",
     "build:component": "npx webpack --mode=production",
     "publish": "npm run build:component",
