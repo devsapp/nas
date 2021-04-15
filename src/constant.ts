@@ -1,4 +1,5 @@
 export const CONTEXT = 'FC-NAS';
+export const CONTEXT_NAME = 'fc-nas';
 
 export const FUNNAME = 'nas-function';
 

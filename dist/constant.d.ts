@@ -1,4 +1,5 @@
 export declare const CONTEXT = "FC-NAS";
+export declare const CONTEXT_NAME = "fc-nas";
 export declare const FUNNAME = "nas-function";
 export declare const RETRYOPTIONS: {
     retries: number;

@@ -4,6 +4,7 @@ import {
   getCredential,
   help,
   commandParse,
+  reportComponent,
 } from '@serverless-devs/core';
 import _ from 'lodash';
 import * as constant from './constant';
@@ -32,7 +33,11 @@ export default class NasCompoent {
       return;
     }
 
-    const credentials = await getCredential(inputs.project.access);;
+    const credentials = await getCredential(inputs.project.access);
+    reportComponent(constant.CONTEXT_NAME, {
+      uid: credentials.AccountID,
+      command: 'deploy',
+    });
 
     const properties: IProperties = _.cloneDeep(inputs.props);
     this.logger.debug(`Properties values: ${JSON.stringify(properties)}.`);
@@ -78,7 +83,11 @@ export default class NasCompoent {
     }
 
     const regionId = inputs.props.regionId;
-    const credentials = await getCredential(inputs.project.access);;
+    const credentials = await getCredential(inputs.project.access);
+    reportComponent(constant.CONTEXT_NAME, {
+      uid: credentials.AccountID,
+      command: 'remove',
+    });
 
     const fc = new FcResources(regionId, credentials);
     await fc.remove(inputs);
@@ -105,7 +114,11 @@ export default class NasCompoent {
       functionName = constant.FUNNAME,
       nasDir: nasDirYmlInput,
     } = inputs.props;
-    const credentials = await getCredential(inputs.project.access);;
+    const credentials = await getCredential(inputs.project.access);
+    reportComponent(constant.CONTEXT_NAME, {
+      uid: credentials.AccountID,
+      command: 'ls',
+    });
 
     const isNasServerStale = await Version.isNasServerStale(
       credentials,
@@ -160,7 +173,12 @@ export default class NasCompoent {
       functionName = constant.FUNNAME,
       nasDir: nasDirYmlInput,
     } = inputs.props;
-    const credentials = await getCredential(inputs.project.access);;
+    const credentials = await getCredential(inputs.project.access);
+
+    reportComponent(constant.CONTEXT_NAME, {
+      uid: credentials.AccountID,
+      command: 'rm',
+    });
 
     const isNasServerStale = await Version.isNasServerStale(
       credentials,
@@ -211,7 +229,12 @@ export default class NasCompoent {
       nasDir: nasDirYmlInput,
       excludes,
     } = inputs.props;
-    const credentials = await getCredential(inputs.project.access);;
+    const credentials = await getCredential(inputs.project.access);
+
+    reportComponent(constant.CONTEXT_NAME, {
+      uid: credentials.AccountID,
+      command: 'cp',
+    });
 
     const isNasServerStale = await Version.isNasServerStale(
       credentials,
