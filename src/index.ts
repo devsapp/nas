@@ -21,9 +21,18 @@ process.setMaxListeners(0);
 export default class NasCompoent {
   @HLogger(constant.CONTEXT) logger: ILogger;
 
-  async deploy(inputs: IInputs, isNasServerStale: boolean) {
-    this.logger.debug('Create nas start...');
+  async handlerInputs(inputs) {
+    // @ts-ignore
+    delete inputs.Credentials;
+    // @ts-ignore
+    delete inputs.credentials;
     this.logger.debug(`inputs params: ${JSON.stringify(inputs)}`);
+
+    return inputs;
+  }
+
+  async deploy(inputs: IInputs, isNasServerStale: boolean) {
+    inputs = await this.handlerInputs(inputs);
 
     const apts = { boolean: ['help'], alias: { help: 'h' } };
     const commandData: any = commandParse({ args: inputs.args }, apts);
@@ -71,8 +80,7 @@ export default class NasCompoent {
   }
 
   async remove(inputs: IInputs) {
-    this.logger.debug('Remove nas start...');
-    this.logger.debug(`inputs params: ${JSON.stringify(inputs)}`);
+    inputs = await this.handlerInputs(inputs);
 
     const apts = { boolean: ['help'], alias: { help: 'h' } };
     const commandData: any = commandParse({ args: inputs.args }, apts);
@@ -97,7 +105,7 @@ export default class NasCompoent {
   }
 
   async ls(inputs: IInputs) {
-    this.logger.debug(`inputs params: ${JSON.stringify(inputs)}`);
+    inputs = await this.handlerInputs(inputs);
 
     const apts = { boolean: ['all', 'long', 'help'], alias: { help: 'h', all: 'a', long: 'l' } };
     const { data: commandData = {} }: ICommandParse = commandParse({ args: inputs.args }, apts);
@@ -151,7 +159,7 @@ export default class NasCompoent {
   }
 
   async rm(inputs: IInputs) {
-    this.logger.debug(`inputs params: ${JSON.stringify(inputs)}`);
+    inputs = await this.handlerInputs(inputs);
 
     const apts = {
       boolean: ['recursive', 'force', 'help'],
@@ -207,7 +215,7 @@ export default class NasCompoent {
   }
 
   async cp(inputs: IInputs) {
-    this.logger.debug(`inputs params: ${JSON.stringify(inputs)}`);
+    inputs = await this.handlerInputs(inputs);
 
     const apts = {
       boolean: ['recursive', 'help', 'no-clobber'],

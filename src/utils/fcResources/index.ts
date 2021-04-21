@@ -160,16 +160,6 @@ export default class Resources {
       ];
     }
 
-    _.forEach(inputs, (value, key) => {
-      const k = _.lowerFirst(key);
-      if (k === 'properties' || !_.isObject(value)) {
-        output[k] = value;
-      } else {
-        output[k] = _.mapKeys(value, (v, k) => _.lowerFirst(k));
-      }
-    });
-
-    output.credentials = this.profile;
     output.props = props;
     output.args += ' -s -y';
 

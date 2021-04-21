@@ -1,11 +1,11 @@
 {
   "name": "nas",
-  "version": "0.0.1",
+  "version": "0.0.10",
   "main": "./dist/index.js",
   "dependencies": {
     "@alicloud/fc2": "^2.2.1",
     "@alicloud/pop-core": "^1.7.10",
-    "@serverless-devs/core": "^0.0.63",
+    "@serverless-devs/core": "^0.0.x",
     "async": "^3.2.0",
     "fs-extra": "^9.1.0",
     "ignore": "^5.1.8",

@@ -2,6 +2,7 @@ import { ILogger } from '@serverless-devs/core';
 import { IInputs } from './interface';
 export default class NasCompoent {
     logger: ILogger;
+    handlerInputs(inputs: any): Promise<any>;
     deploy(inputs: IInputs, isNasServerStale: boolean): Promise<{
         mountPointDomain: string;
         fileSystemId: string;
