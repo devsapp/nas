@@ -60,8 +60,7 @@ app.get('/path/exsit', (req, res) => {
 app.get('/file/check', async (req, res) => {
   console.log('received file/check request, query is: ' + JSON.stringify(req.query))
 
-  const { nasFile } = req.query
-  const { fileHash } = req.query
+  const { nasFile, fileHash } = req.query
 
   const nasFileHash = await getFileHash(nasFile)
 
@@ -78,7 +77,7 @@ app.get('/file/check', async (req, res) => {
 
 // exec commands
 app.post('/commands', async (req, res) => {
-  console.log('received commands request, query is: ' + JSON.stringify(req.query))
+  console.log('received commands request, query is: ' + JSON.stringify(req.body))
 
   const { cmd } = req.body
   if (!cmd) {

@@ -57,12 +57,21 @@ export default class Ls {
     const cmd = isRootDir
       ? `cd ${fcPath} && rm -R ${force ? '-f ' : ''} *`
       : `rm ${recursive ? '-R' : ''} ${force ? '-f ' : ''} ${fcPath}`;
-    this.logger.debug(`Rm cmd is ${cmd}`);
-    const rmResponse = await this.fcClient.post(commandsPath(nasHttpTriggerPath), { cmd });
+    this.logger.debug(`Rm cmd is: ${cmd}`);
 
-    this.logger.log(rmResponse.data.stdout);
-    this.logger.log(rmResponse.data.stderr);
-    this.logger.log(`'✔' remove ${fcPath} done`, 'green');
+    try {
+      const rmResponse = await this.fcClient.post(commandsPath(nasHttpTriggerPath), { cmd });
+  
+      this.logger.log(rmResponse.data.stdout);
+      this.logger.log(rmResponse.data.stderr);
+      this.logger.log(`'✔' remove ${fcPath} done`, 'green');
+    } catch(ex) {
+      if (isRootDir && ex.message.includes("cannot remove '*': No such file or directory")) {
+        this.logger.debug(ex);
+      } else {
+        throw ex;
+      }
+    }
   }
 
   async getNasConfig(serviceName: string): Promise<INasId> {
