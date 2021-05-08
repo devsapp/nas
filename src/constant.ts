@@ -69,8 +69,8 @@ export const LSHELP = [
     header: 'Examples',
     content: [
       {
-        desc: '使用: nas ls [options] <fc_dir>',
-        example: '$ nas ls nas:///<nas_dir>',
+        desc: '使用: ls [options] <fc_dir>',
+        example: '$ s exec -- ls nas:///<nas_dir>',
       },
     ],
   },
@@ -106,8 +106,8 @@ export const CPHELP = [
     header: 'Examples',
     content: [
       {
-        desc: '使用: nas cp [options] <src_path> <fc_dir>',
-        example: '$ nas cp /home/usr/demo.file nas://<fc_dir>',
+        desc: '使用: cp [options] <src_path> <fc_dir>',
+        example: '$ s exec -- cp /home/usr/demo.file nas://<fc_dir>',
       },
     ],
   },
@@ -143,8 +143,105 @@ export const RMHELP = [
     header: 'Examples',
     content: [
       {
-        desc: '使用: nas rm [options] <nas_dir>',
-        example: '$ nas rm -f -r nas://<fc_dir>',
+        desc: '使用: rm [options] <nas_dir>',
+        example: '$ s exec -- rm -f -r nas://<fc_dir>',
+      },
+    ],
+  },
+];
+
+export const UPLOADHELP = [
+  {
+    header: 'Options',
+    optionList: [
+      {
+        name: 'recursive',
+        description: '迭代复制文件夹内容',
+        alias: 'r',
+        defaultOption: false,
+        type: Boolean,
+      },
+      {
+        name: 'no-clobber',
+        description: '不覆盖已存在文件',
+        alias: 'n',
+        defaultOption: false,
+        type: Boolean,
+      },
+      {
+        name: 'help',
+        description: '使用引导',
+        alias: 'h',
+        type: Boolean,
+      },
+    ],
+  },
+  {
+    header: 'Examples',
+    content: [
+      {
+        desc: '使用: upload [options] <src_path> <fc_dir>',
+        example: '$ s exec -- upload /home/usr/demo.file nas://<fc_dir>',
+      },
+    ],
+  },
+];
+
+export const DOWNLOADHELP = [
+  {
+    header: 'Options',
+    optionList: [
+      {
+        name: 'recursive',
+        description: '迭代复制文件夹内容',
+        alias: 'r',
+        defaultOption: false,
+        type: Boolean,
+      },
+      {
+        name: 'no-clobber',
+        description: '不覆盖已存在文件',
+        alias: 'n',
+        defaultOption: false,
+        type: Boolean,
+      },
+      {
+        name: 'help',
+        description: '使用引导',
+        alias: 'h',
+        type: Boolean,
+      },
+    ],
+  },
+  {
+    header: 'Examples',
+    content: [
+      {
+        desc: '使用: download [options] <fc_dir> <src_path>',
+        example: '$ s exec -- download nas://<fc_dir> /home/usr/demo',
+      },
+    ],
+  },
+];
+
+export const COMMANDHELP = [
+  {
+    header: 'Options',
+    optionList: [
+      {
+        name: 'help',
+        description: '使用引导',
+        alias: 'h',
+        type: Boolean,
+      },
+    ],
+  },
+  {
+    header: 'Examples',
+    content: [
+      {
+        desc: '使用: command <cmd>',
+        example: '$ s exec -- command ls nas:///<nas_dir>',
       },
     ],
   },

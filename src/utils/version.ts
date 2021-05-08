@@ -1,5 +1,5 @@
 import fs from 'fs-extra';
-import { Logger } from '@serverless-devs/core';
+import { HLogger, ILogger } from '@serverless-devs/core';
 import path from 'path';
 import { CONTEXT } from '../constant';
 import { ICredentials } from '../interface';
@@ -7,6 +7,7 @@ import { fcClient } from './client';
 import { getHttpTriggerPath, versionPath } from './common/generatePath';
 
 export default class Version {
+  @HLogger(CONTEXT) static logger: ILogger;
   static async isNasServerStale(
     profile: ICredentials,
     regionId: string,
@@ -17,18 +18,18 @@ export default class Version {
     const httpPath = getHttpTriggerPath(serviceName, functionName);
 
     try {
-      Logger.debug(CONTEXT, `Get verison path: ${httpPath}`);
+      this.logger.debug(CONTEXT, `Get verison path: ${httpPath}`);
       const res = await client.get(versionPath(httpPath));
-      Logger.debug(CONTEXT, `Get verison response: ${JSON.stringify(res, null, '  ')}`);
+      this.logger.debug(CONTEXT, `Get verison response: ${JSON.stringify(res, null, '  ')}`);
       const curVersionId = res.data.curVersionId;
 
       const version = await this.getVersion();
 
-      Logger.debug(CONTEXT, `curVersionId is: ${curVersionId}, version is: ${version}.`);
+      this.logger.debug(CONTEXT, `curVersionId is: ${curVersionId}, version is: ${version}.`);
 
       const isNew = curVersionId === version;
       if (!isNew) {
-        Logger.warn(
+        this.logger.warn(
           CONTEXT,
           'The auxiliary function is not the latest code, the function needs to be updated.',
         );
@@ -36,8 +37,8 @@ export default class Version {
 
       return isNew;
     } catch (ex) {
-      Logger.debug(CONTEXT, ex);
-      Logger.warn(CONTEXT, 'Failed to request version, update function.');
+      this.logger.debug(CONTEXT, ex);
+      this.logger.warn(CONTEXT, 'Failed to request version, update function.');
       return false;
     }
   }

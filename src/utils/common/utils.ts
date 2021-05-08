@@ -11,6 +11,13 @@ const NAS_URI_PATTERN = /^nas:\/\/((?:\/[^/]+)*\/?)$/;
 
 export const isNasProtocol = (inputPath: string): boolean => inputPath.indexOf('nas://') === 0;
 
+export function commandCmd(args: string, mountDir: string, nasDirYmlInput: string): string {
+  nasDirYmlInput = nasUriHandler(nasDirYmlInput);
+  const reg = new RegExp(`nas:///${nasDirYmlInput}`, 'g');
+
+  return args.replace(reg, mountDir);
+}
+
 export function parseNasUri(nasUri: string, mountDir: string, nasDirYmlInput: string): string {
   nasDirYmlInput = nasUriHandler(nasDirYmlInput);
 

@@ -12,6 +12,7 @@ interface ICp {
     mountDir: string;
     nasDirYmlInput: string;
     excludes: undefined | string[];
+    command: string;
 }
 interface INasId {
     UserId: number;
@@ -47,7 +48,7 @@ export default class Cp {
     uploadFileByChunk(nasHttpTriggerPath: string, nasZipFile: string, zipFilePath: string, fileOffSet: any[]): Promise<unknown>;
     unzipNasFileParallel(nasHttpTriggerPath: string, dstDir: string, nasZipFile: string, filesArrQueue: any[], noClobber: boolean): Promise<unknown>;
     endWithSlash(inputPath: string): boolean;
-    isCpFromLocalToNas(srcPath: string, targetPath: string): boolean;
-    isCpFromNasToLocal(srcPath: string, targetPath: string): boolean;
+    isCpFromLocalToNas(srcPath: string, targetPath: string, command: string): boolean;
+    isCpFromNasToLocal(srcPath: string, targetPath: string, command: string): boolean;
 }
 export {};

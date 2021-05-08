@@ -1,4 +1,13 @@
 "use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -59,25 +68,25 @@ var Version = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 4, , 5]);
-                        core_1.Logger.debug(constant_1.CONTEXT, "Get verison path: " + httpPath);
+                        this.logger.debug(constant_1.CONTEXT, "Get verison path: " + httpPath);
                         return [4 /*yield*/, client.get(generatePath_1.versionPath(httpPath))];
                     case 2:
                         res = _a.sent();
-                        core_1.Logger.debug(constant_1.CONTEXT, "Get verison response: " + JSON.stringify(res, null, '  '));
+                        this.logger.debug(constant_1.CONTEXT, "Get verison response: " + JSON.stringify(res, null, '  '));
                         curVersionId = res.data.curVersionId;
                         return [4 /*yield*/, this.getVersion()];
                     case 3:
                         version = _a.sent();
-                        core_1.Logger.debug(constant_1.CONTEXT, "curVersionId is: " + curVersionId + ", version is: " + version + ".");
+                        this.logger.debug(constant_1.CONTEXT, "curVersionId is: " + curVersionId + ", version is: " + version + ".");
                         isNew = curVersionId === version;
                         if (!isNew) {
-                            core_1.Logger.warn(constant_1.CONTEXT, 'The auxiliary function is not the latest code, the function needs to be updated.');
+                            this.logger.warn(constant_1.CONTEXT, 'The auxiliary function is not the latest code, the function needs to be updated.');
                         }
                         return [2 /*return*/, isNew];
                     case 4:
                         ex_1 = _a.sent();
-                        core_1.Logger.debug(constant_1.CONTEXT, ex_1);
-                        core_1.Logger.warn(constant_1.CONTEXT, 'Failed to request version, update function.');
+                        this.logger.debug(constant_1.CONTEXT, ex_1);
+                        this.logger.warn(constant_1.CONTEXT, 'Failed to request version, update function.');
                         return [2 /*return*/, false];
                     case 5: return [2 /*return*/];
                 }
@@ -97,7 +106,11 @@ var Version = /** @class */ (function () {
             });
         });
     };
+    __decorate([
+        core_1.HLogger(constant_1.CONTEXT),
+        __metadata("design:type", Object)
+    ], Version, "logger", void 0);
     return Version;
 }());
 exports.default = Version;
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoidmVyc2lvbi5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uL3NyYy91dGlscy92ZXJzaW9uLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBQUEsc0RBQTBCO0FBQzFCLDhDQUErQztBQUMvQyw4Q0FBd0I7QUFDeEIsd0NBQXNDO0FBRXRDLG1DQUFvQztBQUNwQyxzREFBd0U7QUFFeEU7SUFBQTtJQXlDQSxDQUFDO0lBeENjLHdCQUFnQixHQUE3QixVQUNFLE9BQXFCLEVBQ3JCLFFBQWdCLEVBQ2hCLFdBQW1CLEVBQ25CLFlBQW9COzs7Ozs7d0JBRWQsTUFBTSxHQUFHLGlCQUFRLENBQUMsUUFBUSxFQUFFLE9BQU8sQ0FBQyxDQUFDO3dCQUNyQyxRQUFRLEdBQUcsaUNBQWtCLENBQUMsV0FBVyxFQUFFLFlBQVksQ0FBQyxDQUFDOzs7O3dCQUc3RCxhQUFNLENBQUMsS0FBSyxDQUFDLGtCQUFPLEVBQUUsdUJBQXFCLFFBQVUsQ0FBQyxDQUFDO3dCQUMzQyxxQkFBTSxNQUFNLENBQUMsR0FBRyxDQUFDLDBCQUFXLENBQUMsUUFBUSxDQUFDLENBQUMsRUFBQTs7d0JBQTdDLEdBQUcsR0FBRyxTQUF1Qzt3QkFDbkQsYUFBTSxDQUFDLEtBQUssQ0FBQyxrQkFBTyxFQUFFLDJCQUF5QixJQUFJLENBQUMsU0FBUyxDQUFDLEdBQUcsRUFBRSxJQUFJLEVBQUUsSUFBSSxDQUFHLENBQUMsQ0FBQzt3QkFDNUUsWUFBWSxHQUFHLEdBQUcsQ0FBQyxJQUFJLENBQUMsWUFBWSxDQUFDO3dCQUUzQixxQkFBTSxJQUFJLENBQUMsVUFBVSxFQUFFLEVBQUE7O3dCQUFqQyxPQUFPLEdBQUcsU0FBdUI7d0JBRXZDLGFBQU0sQ0FBQyxLQUFLLENBQUMsa0JBQU8sRUFBRSxzQkFBb0IsWUFBWSxzQkFBaUIsT0FBTyxNQUFHLENBQUMsQ0FBQzt3QkFFN0UsS0FBSyxHQUFHLFlBQVksS0FBSyxPQUFPLENBQUM7d0JBQ3ZDLElBQUksQ0FBQyxLQUFLLEVBQUU7NEJBQ1YsYUFBTSxDQUFDLElBQUksQ0FDVCxrQkFBTyxFQUNQLGtGQUFrRixDQUNuRixDQUFDO3lCQUNIO3dCQUVELHNCQUFPLEtBQUssRUFBQzs7O3dCQUViLGFBQU0sQ0FBQyxLQUFLLENBQUMsa0JBQU8sRUFBRSxJQUFFLENBQUMsQ0FBQzt3QkFDMUIsYUFBTSxDQUFDLElBQUksQ0FBQyxrQkFBTyxFQUFFLDZDQUE2QyxDQUFDLENBQUM7d0JBQ3BFLHNCQUFPLEtBQUssRUFBQzs7Ozs7S0FFaEI7SUFFWSxrQkFBVSxHQUF2Qjs7Ozs7O3dCQUNRLFdBQVcsR0FBRyxjQUFJLENBQUMsSUFBSSxDQUFDLFNBQVMsRUFBRSxhQUFhLEVBQUUsU0FBUyxDQUFDLENBQUM7d0JBRTNELHFCQUFNLGtCQUFFLENBQUMsUUFBUSxDQUFDLFdBQVcsQ0FBQyxFQUFBOzRCQUF0QyxzQkFBTyxDQUFDLFNBQThCLENBQUMsQ0FBQyxRQUFRLEVBQUUsRUFBQzs7OztLQUNwRDtJQUNILGNBQUM7QUFBRCxDQUFDLEFBekNELElBeUNDIn0=
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoidmVyc2lvbi5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uL3NyYy91dGlscy92ZXJzaW9uLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBQUEsc0RBQTBCO0FBQzFCLDhDQUF5RDtBQUN6RCw4Q0FBd0I7QUFDeEIsd0NBQXNDO0FBRXRDLG1DQUFvQztBQUNwQyxzREFBd0U7QUFFeEU7SUFBQTtJQTBDQSxDQUFDO0lBeENjLHdCQUFnQixHQUE3QixVQUNFLE9BQXFCLEVBQ3JCLFFBQWdCLEVBQ2hCLFdBQW1CLEVBQ25CLFlBQW9COzs7Ozs7d0JBRWQsTUFBTSxHQUFHLGlCQUFRLENBQUMsUUFBUSxFQUFFLE9BQU8sQ0FBQyxDQUFDO3dCQUNyQyxRQUFRLEdBQUcsaUNBQWtCLENBQUMsV0FBVyxFQUFFLFlBQVksQ0FBQyxDQUFDOzs7O3dCQUc3RCxJQUFJLENBQUMsTUFBTSxDQUFDLEtBQUssQ0FBQyxrQkFBTyxFQUFFLHVCQUFxQixRQUFVLENBQUMsQ0FBQzt3QkFDaEQscUJBQU0sTUFBTSxDQUFDLEdBQUcsQ0FBQywwQkFBVyxDQUFDLFFBQVEsQ0FBQyxDQUFDLEVBQUE7O3dCQUE3QyxHQUFHLEdBQUcsU0FBdUM7d0JBQ25ELElBQUksQ0FBQyxNQUFNLENBQUMsS0FBSyxDQUFDLGtCQUFPLEVBQUUsMkJBQXlCLElBQUksQ0FBQyxTQUFTLENBQUMsR0FBRyxFQUFFLElBQUksRUFBRSxJQUFJLENBQUcsQ0FBQyxDQUFDO3dCQUNqRixZQUFZLEdBQUcsR0FBRyxDQUFDLElBQUksQ0FBQyxZQUFZLENBQUM7d0JBRTNCLHFCQUFNLElBQUksQ0FBQyxVQUFVLEVBQUUsRUFBQTs7d0JBQWpDLE9BQU8sR0FBRyxTQUF1Qjt3QkFFdkMsSUFBSSxDQUFDLE1BQU0sQ0FBQyxLQUFLLENBQUMsa0JBQU8sRUFBRSxzQkFBb0IsWUFBWSxzQkFBaUIsT0FBTyxNQUFHLENBQUMsQ0FBQzt3QkFFbEYsS0FBSyxHQUFHLFlBQVksS0FBSyxPQUFPLENBQUM7d0JBQ3ZDLElBQUksQ0FBQyxLQUFLLEVBQUU7NEJBQ1YsSUFBSSxDQUFDLE1BQU0sQ0FBQyxJQUFJLENBQ2Qsa0JBQU8sRUFDUCxrRkFBa0YsQ0FDbkYsQ0FBQzt5QkFDSDt3QkFFRCxzQkFBTyxLQUFLLEVBQUM7Ozt3QkFFYixJQUFJLENBQUMsTUFBTSxDQUFDLEtBQUssQ0FBQyxrQkFBTyxFQUFFLElBQUUsQ0FBQyxDQUFDO3dCQUMvQixJQUFJLENBQUMsTUFBTSxDQUFDLElBQUksQ0FBQyxrQkFBTyxFQUFFLDZDQUE2QyxDQUFDLENBQUM7d0JBQ3pFLHNCQUFPLEtBQUssRUFBQzs7Ozs7S0FFaEI7SUFFWSxrQkFBVSxHQUF2Qjs7Ozs7O3dCQUNRLFdBQVcsR0FBRyxjQUFJLENBQUMsSUFBSSxDQUFDLFNBQVMsRUFBRSxhQUFhLEVBQUUsU0FBUyxDQUFDLENBQUM7d0JBRTNELHFCQUFNLGtCQUFFLENBQUMsUUFBUSxDQUFDLFdBQVcsQ0FBQyxFQUFBOzRCQUF0QyxzQkFBTyxDQUFDLFNBQThCLENBQUMsQ0FBQyxRQUFRLEVBQUUsRUFBQzs7OztLQUNwRDtJQXhDaUI7UUFBakIsY0FBTyxDQUFDLGtCQUFPLENBQUM7O2lDQUF3QjtJQXlDM0MsY0FBQztDQUFBLEFBMUNELElBMENDO2tCQTFDb0IsT0FBTyJ9

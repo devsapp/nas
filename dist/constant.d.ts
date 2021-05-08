@@ -98,3 +98,68 @@ export declare const RMHELP: ({
     }[];
     optionList?: undefined;
 })[];
+export declare const UPLOADHELP: ({
+    header: string;
+    optionList: ({
+        name: string;
+        description: string;
+        alias: string;
+        defaultOption: boolean;
+        type: BooleanConstructor;
+    } | {
+        name: string;
+        description: string;
+        alias: string;
+        type: BooleanConstructor;
+        defaultOption?: undefined;
+    })[];
+    content?: undefined;
+} | {
+    header: string;
+    content: {
+        desc: string;
+        example: string;
+    }[];
+    optionList?: undefined;
+})[];
+export declare const DOWNLOADHELP: ({
+    header: string;
+    optionList: ({
+        name: string;
+        description: string;
+        alias: string;
+        defaultOption: boolean;
+        type: BooleanConstructor;
+    } | {
+        name: string;
+        description: string;
+        alias: string;
+        type: BooleanConstructor;
+        defaultOption?: undefined;
+    })[];
+    content?: undefined;
+} | {
+    header: string;
+    content: {
+        desc: string;
+        example: string;
+    }[];
+    optionList?: undefined;
+})[];
+export declare const COMMANDHELP: ({
+    header: string;
+    optionList: {
+        name: string;
+        description: string;
+        alias: string;
+        type: BooleanConstructor;
+    }[];
+    content?: undefined;
+} | {
+    header: string;
+    content: {
+        desc: string;
+        example: string;
+    }[];
+    optionList?: undefined;
+})[];

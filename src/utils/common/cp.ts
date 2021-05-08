@@ -30,6 +30,7 @@ interface ICp {
   mountDir: string;
   nasDirYmlInput: string;
   excludes: undefined | string[];
+  command: string;
 }
 
 interface INasId {
@@ -56,15 +57,15 @@ export default class Cp {
   }
 
   async cp(options: ICp) {
-    const { srcPath, targetPath, mountDir, nasDirYmlInput } = options;
+    const { srcPath, targetPath, mountDir, nasDirYmlInput, command } = options;
     if (!srcPath || !targetPath) {
       this.logger.error('Input path empty error, please input again!');
       return;
     }
 
-    if (this.isCpFromLocalToNas(srcPath, targetPath)) {
+    if (this.isCpFromLocalToNas(srcPath, targetPath, command)) {
       await this.cpFromLocalToNas(options);
-    } else if (this.isCpFromNasToLocal(srcPath, targetPath)) {
+    } else if (this.isCpFromNasToLocal(srcPath, targetPath, command)) {
       await this.cpFromNasToLocal(
         srcPath,
         targetPath,
@@ -613,11 +614,11 @@ export default class Cp {
     return inputPath.charAt(inputPath.length - 1) === '/';
   }
 
-  isCpFromLocalToNas(srcPath: string, targetPath: string): boolean {
-    return !utils.isNasProtocol(srcPath) && utils.isNasProtocol(targetPath);
+  isCpFromLocalToNas(srcPath: string, targetPath: string, command: string): boolean {
+    return command === 'upload' || (!utils.isNasProtocol(srcPath) && utils.isNasProtocol(targetPath));
   }
 
-  isCpFromNasToLocal(srcPath: string, targetPath: string): boolean {
-    return utils.isNasProtocol(srcPath) && !utils.isNasProtocol(targetPath);
+  isCpFromNasToLocal(srcPath: string, targetPath: string, command: string): boolean {
+    return command === 'download' || (utils.isNasProtocol(srcPath) && !utils.isNasProtocol(targetPath));
   }
 }

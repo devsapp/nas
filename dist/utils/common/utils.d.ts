@@ -1,4 +1,5 @@
 export declare const isNasProtocol: (inputPath: string) => boolean;
+export declare function commandCmd(args: string, mountDir: string, nasDirYmlInput: string): string;
 export declare function parseNasUri(nasUri: string, mountDir: string, nasDirYmlInput: string): string;
 export declare function resolveLocalPath(localPath: string): string;
 interface IDirOrFile {
