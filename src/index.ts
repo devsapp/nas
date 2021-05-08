@@ -34,8 +34,9 @@ export default class NasCompoent {
   }
 
   async handlerInputs(inputs, command?: string) {
-    if (inputs.credentials?.AccountID && command) {
-      this.reportComponent(command, inputs.credentials.AccountID);
+    const credentials = await getCredential(inputs.project.access);
+    if (command) {
+      this.reportComponent(command, credentials.AccountID);
     }
 
     const {
@@ -45,7 +46,7 @@ export default class NasCompoent {
     } = inputs.props;
 
     const isNasServerStale = await Version.isNasServerStale(
-      inputs.credentials,
+      credentials,
       regionId,
       serviceName,
       functionName,
