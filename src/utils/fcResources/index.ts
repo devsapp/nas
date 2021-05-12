@@ -1,12 +1,12 @@
-import { HLogger, ILogger, loadComponent } from '@serverless-devs/core';
+import { HLogger, ILogger, spinner } from '@serverless-devs/core';
 import _ from 'lodash';
 import path from 'path';
 import Version from '../version';
 import { fcClient } from '../client';
 import { CONTEXT, FUNNAME } from '../../constant';
-import { IInputs, ICredentials } from '../../interface';
-import { IFcConfig } from './interface';
+import { IInputs, IProperties, ICredentials } from '../../interface';
 import { sleep } from '../utils';
+import FC from './fc';
 
 const ENSURENASDIREXISTSERVICE = 'ensure-nas-dir-exist-service';
 const ENSURENASDIREXISTFUNCTION = 'nas_dir_checker';
@@ -19,7 +19,6 @@ export default class Resources {
   @HLogger(CONTEXT) logger: ILogger;
   fcClient: any;
   profile: ICredentials;
-  fcBase: any;
 
   constructor(regionId: string, profile: ICredentials) {
     this.fcClient = fcClient(regionId, profile);
@@ -27,96 +26,93 @@ export default class Resources {
   }
 
   async init(inputs: IInputs, mountPointDomain: string) {
-    this.fcBase = await loadComponent('devsapp/fc-base');
+    const vm = spinner('Deploy helper function...');
+    try {
+      await this.deployEnsureNasDir(inputs, mountPointDomain);
 
-    await this.deployEnsureNasDir(inputs, mountPointDomain);
-
-    await this.deployNasService(inputs, mountPointDomain);
+      await this.deployNasService(inputs, mountPointDomain);
+    } catch(ex) {
+      vm.fail();
+      throw ex;
+    }
+    vm.succeed('upload done');
   }
 
   async remove(inputs: IInputs) {
-    const fcBase = await loadComponent('devsapp/fc-base');
+    const nasServiceProps = await this.transformYamlConfigToFcbaseConfig(_.cloneDeep(inputs.props), '', false);
+    await FC.remove(this.fcClient, nasServiceProps);
 
-    const nasServiceInputs = await this.transformYamlConfigToFcbaseConfig(_.cloneDeep(inputs), '', false);
-    nasServiceInputs.args = 'service -s -y';
-    await fcBase.remove(nasServiceInputs);
-
-    const ensureNasDirInputs = await this.transformYamlConfigToFcbaseConfig(_.cloneDeep(inputs), '', true);
-    ensureNasDirInputs.args = 'service -s -y';
-    await fcBase.remove(ensureNasDirInputs);
+    const ensureNasDirProps = await this.transformYamlConfigToFcbaseConfig(_.cloneDeep(inputs.props), '', true);
+    await FC.remove(this.fcClient, ensureNasDirProps);
   }
 
   async deployNasService(inputs: IInputs, mountPointDomain: string) {
     const nasServiceInputs = await this.transformYamlConfigToFcbaseConfig(
-      _.cloneDeep(inputs),
+      _.cloneDeep(inputs.props),
       mountPointDomain,
       false,
     );
-    this.logger.warn(`deploy nas service`);
-    
-    await this.fcBase.deploy(nasServiceInputs);
-    this.logger.warn(`Waiting for trigger to be up`);
-    await sleep(5000);
+    this.logger.debug(`deploy nas service`);
+
+    await FC.deploy(this.fcClient, nasServiceInputs);
+    this.logger.debug(`Waiting for trigger to be up`);
+    await sleep(2500);
   }
 
   async deployEnsureNasDir(inputs: IInputs, mountPointDomain: string) {
-    const ensureNasDirInputs = await this.transformYamlConfigToFcbaseConfig(
-      _.cloneDeep(inputs),
+    const ensureNasDirProps = await this.transformYamlConfigToFcbaseConfig(
+      _.cloneDeep(inputs.props),
       mountPointDomain,
       true,
     );
+    await FC.deploy(this.fcClient, ensureNasDirProps);
 
-    await this.fcBase.deploy(ensureNasDirInputs);
-    await sleep(1000);
-
-    const f = ensureNasDirInputs.props.function;
+    const { serviceName, functionName } = ensureNasDirProps.function;
     const { mountDir, nasDir } = inputs.props;
 
     this.logger.debug(
-      `Invoke fc function, service name is: ${f.service}, function name is: ${
-        f.name
+      `Invoke fc function, service name is: ${serviceName}, function name is: ${
+        functionName
       }, event is: ${JSON.stringify([nasDir])}`,
     );
     await this.invokeFcUtilsFunction(
-      f.service,
-      f.name,
+      serviceName,
+      functionName,
       JSON.stringify([path.join(mountDir, nasDir)]),
     );
   }
 
   async transformYamlConfigToFcbaseConfig(
-    inputs: IInputs,
+    inputProps: IProperties,
     mountPointDomain: string,
     isEnsureNasDirExist: boolean,
   ) {
-    const output: any = inputs;
-
     const {
       regionId,
       serviceName,
       functionName = FUNNAME,
       role,
-      // vpcId,
+      vpcId,
       vSwitchId,
       securityGroupId,
       mountDir,
       nasDir,
       userId = 10003,
       groupId = 10003,
-    } = inputs.props;
+    } = inputProps;
 
     const service = isEnsureNasDirExist
       ? `${serviceName}-${ENSURENASDIREXISTSERVICE}`
       : serviceName;
     const funName = isEnsureNasDirExist ? ENSURENASDIREXISTFUNCTION : functionName;
 
-    const props: IFcConfig = {
+    const props: any = {
       region: regionId,
       service: {
-        name: service,
+        serviceName: service,
         role: role,
         vpcConfig: {
-          // vpcId,
+          vpcId,
           securityGroupId,
           vswitchIds: [vSwitchId],
         },
@@ -132,8 +128,8 @@ export default class Resources {
         },
       },
       function: {
-        service,
-        name: funName,
+        serviceName: service,
+        functionName: funName,
         handler: 'index.handler',
         timeout: 600,
         memorySize: 256,
@@ -148,11 +144,11 @@ export default class Resources {
     if (!isEnsureNasDirExist) {
       props.triggers = [
         {
-          name: 'httpTrigger',
-          function: funName,
-          service: service,
-          type: 'http',
-          config: {
+          serviceName: service,
+          functionName: funName,
+          triggerName: 'httpTrigger',
+          triggerType: 'http',
+          triggerConfig: {
             authType: 'function',
             methods: ['POST', 'GET'],
           },
@@ -160,10 +156,7 @@ export default class Resources {
       ];
     }
 
-    output.props = props;
-    output.args += ' -s -y';
-
-    return output;
+    return props;
   }
 
   async invokeFcUtilsFunction(serviceName: string, functionName: string, event: string) {
