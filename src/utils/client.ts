@@ -6,6 +6,7 @@ export function fcClient(regionId: string, profile: ICredentials) {
   const client = new FC(profile.AccountID, {
     accessKeyID: profile.AccessKeyID,
     accessKeySecret: profile.AccessKeySecret,
+    securityToken: profile.SecurityToken,
     region: regionId,
     timeout: getTimeout(),
   });

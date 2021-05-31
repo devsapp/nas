@@ -15,6 +15,8 @@ export default class Nas {
       apiVersion: '2017-06-26',
       accessKeyId: profile.AccessKeyID,
       accessKeySecret: profile.AccessKeySecret,
+      // @ts-ignore
+      securityToken: profile.SecurityToken,
       opts: {
         timeout: getTimeout(),
       },
@@ -62,7 +64,7 @@ export default class Nas {
 
   async remove(properties: IProperties) {
     const { regionId, nasName, vpcId, vSwitchId } = properties;
-    let fileSystemId = properties.fileSystemId;
+    let { fileSystemId } = properties;
     if (!nasName || !fileSystemId) {
       this.logger.debug('Not found nasName or fileSystemId,skip remove nas.');
       return;
@@ -108,13 +110,9 @@ export default class Nas {
         PageNumber: ++requestPageNumber,
       };
 
-      let rs;
-      try {
-        this.logger.debug(`DescribeFileSystems request pageNumber: ${requestPageNumber}`);
-        rs = await this.nasClient.request('DescribeFileSystems', params, REQUESTOPTION);
-      } catch (ex) {
-        throw ex;
-      }
+
+      this.logger.debug(`DescribeFileSystems request pageNumber: ${requestPageNumber}`);
+      const rs = await this.nasClient.request('DescribeFileSystems', params, REQUESTOPTION);
 
       totalCount = rs.TotalCount;
       pageNumber = rs.PageNumber;
@@ -276,7 +274,7 @@ export default class Nas {
       this.logger.debug(`Call DescribeMountTargets response is: ${JSON.stringify(rs)}`);
 
       status = rs.MountTargets.MountTarget[0].Status;
-      this.logger.debug('nas status is: ' + status);
+      this.logger.debug(`nas status is: ${ status}`);
 
       this.logger.info(
         `Nas mount target domain already created, waiting for status to be 'Active', now is ${status}`,
