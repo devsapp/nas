@@ -103,13 +103,13 @@ export default class Cp {
     this.logger.debug('Path is exsit.');
 
     this.logger.log(`zipping ${resolveNasPath}`);
-    const tmpNasZipPath = path.posix.join(path.dirname(resolveNasPath), `.fun-nas-generated.zip`);
+    const tmpNasZipPath = path.posix.join(path.dirname(resolveNasPath), '.fun-nas-generated.zip');
 
     const cmd = `cd ${path.dirname(resolveNasPath)} && zip -r ${tmpNasZipPath} ${path.basename(
       resolveNasPath,
     )}`;
     await this.fcClient.post(commandsPath(nasHttpTriggerPath), { cmd });
-    this.logger.log(`'✔' zip done`, 'green');
+    this.logger.log('\'✔\' zip done', 'green');
 
     this.logger.log('downloading...');
     const localZipDirname = path.join(process.cwd(), '.s', 'nas');
@@ -123,7 +123,7 @@ export default class Cp {
       {},
       { rawBuf: true },
     );
-    this.logger.log(`'✔' download done`, 'green');
+    this.logger.log('\'✔\' download done', 'green');
 
     const buf = rs.data;
     await new Promise((resolve, reject) => {
@@ -196,7 +196,7 @@ export default class Cp {
     };
     this.logger.debug(`dstStats value is: ${JSON.stringify(dstStats)}`);
 
-    let actualDstPath = await this.checkCpDstPath(
+    const actualDstPath = await this.checkCpDstPath(
       nasHttpTriggerPath,
       resolvedSrc,
       dstStats,
@@ -240,21 +240,20 @@ export default class Cp {
     excludes.push(path.relative(process.cwd(), outputFilePath));
     excludes.push(path.relative(process.cwd(), path.join(process.cwd(), '.s', 'logs')));
 
-    // @ts-ignore
-    const { compressedSize } = await zip({
+    await zip({
       codeUri: resolvedSrc,
-      outputFileName: outputFileName,
-      outputFilePath: outputFilePath,
+      outputFileName,
+      outputFilePath,
       exclude: excludes,
     });
 
     this.logger.debug(`Checking NAS tmp dir ${actualDstPath}`);
 
-    const tmpCheck = await this.fcClient.get(nasHttpTriggerPath + 'tmp/check', {
+    const tmpCheck = await this.fcClient.get(`${nasHttpTriggerPath }tmp/check`, {
       remoteNasTmpDir: actualDstPath,
     });
     this.logger.debug(`Tmp check response is: ${JSON.stringify(tmpCheck)}`);
-    this.logger.debug(`Check done`);
+    this.logger.debug('Check done');
 
     const nasFile = path.posix.join(actualDstPath, outputFileName);
     const fileHash = path.posix.join(outputFilePath, outputFileName);
@@ -305,6 +304,7 @@ export default class Cp {
     console.log();
     this.logger.debug(data);
     if (data.error) {
+      vm.fail();
       throw new Error(data.error);
     }
     vm.succeed(`File uploaded successfully: ${actualDstPath}`);
@@ -352,7 +352,7 @@ export default class Cp {
     const chunkBuf = Buffer.alloc(size);
     const { bytesRead } = await fs.read(fd, chunkBuf, 0, size, start);
     if (bytesRead !== size) {
-      throw new Error(`ReadChunkFile function bytesRead not equal read size`);
+      throw new Error('ReadChunkFile function bytesRead not equal read size');
     }
     await fs.close(fd);
     return chunkBuf;
@@ -360,7 +360,7 @@ export default class Cp {
 
   async getFilePermission(filePath: string) {
     const stat = await fs.lstat(filePath);
-    const permission = '0' + (stat.mode & parseInt('777', 8)).toString(8);
+    const permission = `0${ (stat.mode & parseInt('777', 8)).toString(8)}`;
     return permission;
   }
 
@@ -494,7 +494,7 @@ export default class Cp {
     if (isFile) {
       return await md5File(filePath);
     }
-    throw new Error('get file hash error, target is not a file, target path is: ' + isFile);
+    throw new Error(`get file hash error, target is not a file, target path is: ${ isFile}`);
   }
 
   uploadFileByChunk(
@@ -504,7 +504,7 @@ export default class Cp {
     fileOffSet: any[],
   ) {
     return new Promise((resolve) => {
-      const vm = spinner(`uploading`);
+      const vm = spinner('uploading');
       const uploadQueue = async.queue(async (offSet, callback) => {
         try {
           const urlPath = fileChunkUpload(nasHttpTriggerPath);
@@ -560,11 +560,11 @@ export default class Cp {
             cmd = `unzip -q -o ${nasZipFile} -d ${dstDir}`;
           }
           for (const unzipFile of unzipFiles) {
-            cmd = cmd + ` '${unzipFile}'`;
+            cmd += ` '${unzipFile}'`;
           }
           // cmd = cmd + ` '${unzipFile}'`;
           this.logger.debug(`Send unzip request cmd is: ${cmd}.`);
-          const res = await this.fcClient.post(nasHttpTriggerPath + 'commands', { cmd });
+          const res = await this.fcClient.post(`${nasHttpTriggerPath }commands`, { cmd });
           this.logger.debug(res);
         } catch (error) {
           // zip 中存在特殊文件名，例如 $data.js

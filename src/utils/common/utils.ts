@@ -103,8 +103,7 @@ export function checkWritePerm(stats: any, nasId: INasId, nasPath: string): stri
 
   const permString = (mode & parseInt('777', 8)).toString(8);
   const [ownerCanWrite, groupCanWrite, otherCanWrite] = _.map(permString, (perm) =>
-    hasWritePerm(parseInt(perm), stats, nasPath),
-  );
+    hasWritePerm(parseInt(perm), stats, nasPath));
 
   if (!ownerCanWrite && !groupCanWrite && !otherCanWrite) {
     return `${nasPath} has no '-w-' or '-wx' permission, more information please refer to https://github.com/alibaba/funcraft/blob/master/docs/usage/faq-zh.md`;
@@ -139,7 +138,7 @@ export function splitRangeBySize(start: number, end: number, chunkSize: number):
       start,
       size,
     });
-    start = start + size;
+    start += size;
   }
   return res;
 }

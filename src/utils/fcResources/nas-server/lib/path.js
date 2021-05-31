@@ -1,19 +1,19 @@
-const fs = require('fs-extra')
+const fs = require('fs-extra');
 
 async function makeTmpDir(tmpDir) {
-  let stats
-  let error
+  let stats;
+  let error;
   try {
-    stats = await fs.lstat(tmpDir)
+    stats = await fs.lstat(tmpDir);
   } catch (err) {
-    error = err
+    error = err;
   }
   if (error || (!error && stats.isFile())) {
-    await fs.mkdirp(tmpDir)
-    await fs.chmod(tmpDir, 0o1777)
+    await fs.mkdirp(tmpDir);
+    await fs.chmod(tmpDir, 0o1777);
   }
 }
 
 module.exports = {
-  makeTmpDir
-}
+  makeTmpDir,
+};

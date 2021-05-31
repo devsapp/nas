@@ -37,7 +37,7 @@ export const HELP = [
       },
     ],
   },
-]
+];
 
 export const LSHELP = [
   {

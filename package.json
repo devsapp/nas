@@ -31,12 +31,11 @@
     "webpack-cli": "^4.4.0"
   },
   "scripts": {
+    "start": "npm run dev",
     "dev": "npx tsc -w -p tsconfig.json",
     "prebuild": "rimraf dist",
     "package-zip": "rm -rf ./dist/utils/fcResources/nas-server-*.zip && make -C ./src/utils/fcResources/ensure-nas-dir-exist package && make -C ./src/utils/fcResources/nas-server package",
     "build": "npx tsc -p tsconfig.json",
-    "build:component": "npx webpack --mode=production",
-    "publish": "npm run build:component",
     "test": "jest",
     "test:cov": "jest --coverage",
     "lint": "f2elint scan",

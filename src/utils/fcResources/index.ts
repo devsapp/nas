@@ -31,7 +31,7 @@ export default class Resources {
       await this.deployEnsureNasDir(inputs, mountPointDomain);
 
       await this.deployNasService(inputs, mountPointDomain);
-    } catch(ex) {
+    } catch (ex) {
       vm.fail();
       throw ex;
     }
@@ -52,10 +52,10 @@ export default class Resources {
       mountPointDomain,
       false,
     );
-    this.logger.debug(`deploy nas service`);
+    this.logger.debug('deploy nas service');
 
     await FC.deploy(this.fcClient, nasServiceInputs);
-    this.logger.debug(`Waiting for trigger to be up`);
+    this.logger.debug('Waiting for trigger to be up');
     await sleep(2500);
   }
 
@@ -110,7 +110,7 @@ export default class Resources {
       region: regionId,
       service: {
         serviceName: service,
-        role: role,
+        role,
         vpcConfig: {
           vpcId,
           securityGroupId,
@@ -136,8 +136,8 @@ export default class Resources {
         filename: isEnsureNasDirExist ? ENSURENASDIREXISTFILENAME : await getNasServerFile(),
         runtime: 'nodejs12',
         environmentVariables: {
-          PATH: '/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/code/bin'
-        }
+          PATH: '/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/code/bin',
+        },
       },
     };
 

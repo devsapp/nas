@@ -1,4 +1,4 @@
-const { exec } = require('child_process')
+const { exec } = require('child_process');
 
 function execute(command) {
   return new Promise((resolve, reject) => {
@@ -8,20 +8,20 @@ function execute(command) {
         encoding: 'utf8',
         timeout: 0,
         maxBuffer: 1024 * 1024 * 1024,
-        killSignal: 'SIGTERM'
+        killSignal: 'SIGTERM',
       },
       (error, stdout, stderr) => {
         if (error) {
-          reject(error)
-          return
+          reject(error);
+          return;
         }
         resolve({
           stdout,
-          stderr
-        })
-      }
-    )
-  })
+          stderr,
+        });
+      },
+    );
+  });
 }
 
-module.exports = execute
+module.exports = execute;

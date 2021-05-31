@@ -14,23 +14,23 @@ export default class Component {
         try {
           this.logger.debug('Delete trigger...');
           await client.deleteTrigger(serviceName, functionName, triggerName);
-        } catch(ex) {
+        } catch (ex) {
           this.logger.debug(`ex code: ${ex.code}, ex: ${ex.message}`);
         }
       }
     }
-    
+
     try {
       this.logger.debug('Delete function...');
       await client.deleteFunction(serviceName, functionName);
-    } catch(ex) {
+    } catch (ex) {
       this.logger.debug(`ex code: ${ex.code}, ex: ${ex.message}`);
     }
 
     try {
       this.logger.debug('Delete service...');
       await client.deleteService(serviceName);
-    } catch(ex) {
+    } catch (ex) {
       this.logger.debug(`ex code: ${ex.code}, ex: ${ex.message}`);
     }
   }
@@ -56,7 +56,7 @@ export default class Component {
       this.logger.debug(`Create service ${serviceName}...`);
       await client.createService(serviceName, service);
       this.logger.debug(`Create service ${serviceName} success.`);
-    } catch(ex) {
+    } catch (ex) {
       if (ex.code !== 'ServiceAlreadyExists') {
         this.logger.debug(`ex code: ${ex.code}, ex: ${ex.message}`);
         throw ex;
@@ -72,14 +72,14 @@ export default class Component {
     const { serviceName, functionName, filename } = functionConfig;
     delete functionConfig.filename;
     functionConfig.code = {
-      zipFile: fs.readFileSync(filename, 'base64')
-    }
+      zipFile: fs.readFileSync(filename, 'base64'),
+    };
 
     try {
       this.logger.debug(`Create function ${serviceName}/${functionName}...`);
       await client.updateFunction(serviceName, functionName, functionConfig);
       this.logger.debug(`Create function ${serviceName}/${functionName} success.`);
-    } catch(ex) {
+    } catch (ex) {
       if (ex.code === 'FunctionNotFound') {
         functionConfig.functionName = functionName;
         await client.createFunction(serviceName, functionConfig);
@@ -96,7 +96,7 @@ export default class Component {
       this.logger.debug(`Create trigger ${serviceName}/${functionName}/${triggerName}...`);
       await client.createTrigger(serviceName, functionName, triggerConfig);
       this.logger.debug(`Create trigger ${serviceName}/${functionName}/${triggerName} success.`);
-    } catch(ex) {
+    } catch (ex) {
       if (ex.code !== 'TriggerAlreadyExists') {
         this.logger.debug(`ex code: ${ex.code}, ex: ${ex.message}`);
         throw ex;

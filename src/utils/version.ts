@@ -21,7 +21,7 @@ export default class Version {
       this.logger.debug(CONTEXT, `Get verison path: ${httpPath}`);
       const res = await client.get(versionPath(httpPath));
       this.logger.debug(CONTEXT, `Get verison response: ${JSON.stringify(res, null, '  ')}`);
-      const curVersionId = res.data.curVersionId;
+      const { curVersionId } = res.data;
 
       const version = await this.getVersion();
 

@@ -2,6 +2,8 @@ node_modules/
 build/
 dist/
 test/
+src/utils/fcResources/nas-server
+src/utils/fcResources/ensure-nas-dir-exist
 **/*.min.js
 **/*-min.js
 **/*.bundle.js

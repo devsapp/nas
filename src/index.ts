@@ -53,7 +53,7 @@ export default class NasCompoent {
     );
     const { mountDir } = await this.deploy(inputs, isNasServerStale);
     inputs.props.mountDir = mountDir;
-    
+
     this.deleteCredentials(inputs);
     return inputs;
   }
@@ -81,7 +81,7 @@ export default class NasCompoent {
     let fileSystemId = '';
     if (properties.mountPointDomain) {
       mountPointDomain = properties.mountPointDomain;
-      this.logger.info(`Specify parameters, reuse configuration.`);
+      this.logger.info('Specify parameters, reuse configuration.');
     } else {
       const nas = new Nas(properties.regionId, credentials);
       const nasInitResponse = await nas.init(properties);
@@ -116,7 +116,7 @@ export default class NasCompoent {
       return;
     }
 
-    const regionId = inputs.props.regionId;
+    const { regionId } = inputs.props;
     const credentials = await getCredential(inputs.project.access);
     this.reportComponent('remove', credentials.AccountID);
 
@@ -213,7 +213,7 @@ export default class NasCompoent {
     });
   }
 
-  async cp(inputs: IInputs, command: string = 'cp') {
+  async cp(inputs: IInputs, command = 'cp') {
     const apts = {
       boolean: ['recursive', 'help', 'no-clobber'],
       alias: { recursive: 'r', 'no-clobber': 'n', help: 'h' },
@@ -258,7 +258,7 @@ export default class NasCompoent {
   async upload(inputs: IInputs) {
     return await this.cp(inputs, 'upload');
   }
-  
+
   async download(inputs: IInputs) {
     return await this.cp(inputs, 'download');
   }
@@ -267,10 +267,10 @@ export default class NasCompoent {
     const args = inputs.args.replace('--debug', '');
 
     if (!args || args.endsWith(' --help') || args.endsWith(' -h')) {
-      help(constant.COMMANDHELP)
+      help(constant.COMMANDHELP);
       return;
     }
-    
+
     inputs = await this.handlerInputs(inputs, 'command');
 
     const {
@@ -282,7 +282,7 @@ export default class NasCompoent {
     } = inputs.props;
 
     const credentials = await getCredential(inputs.project.access);
-    
+
     const common = new Common.Command(regionId, credentials);
 
     await common.command({

@@ -24,7 +24,7 @@ export default class Ls {
     const { targetPath, isAllOpt, isLongOpt, serviceName, functionName } = options;
 
     const nasHttpTriggerPath = getHttpTriggerPath(serviceName, functionName);
-    const lsCmd = 'ls ' + (isAllOpt ? '-a ' : '') + (isLongOpt ? '-l ' : '') + targetPath;
+    const lsCmd = `ls ${ isAllOpt ? '-a ' : '' }${isLongOpt ? '-l ' : '' }${targetPath}`;
     const lsResponse = await this.fcClient.post(commandsPath(nasHttpTriggerPath), { cmd: lsCmd });
 
     this.logger.log(lsResponse.data.stdout);
