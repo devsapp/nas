@@ -1,6 +1,6 @@
 {
   "name": "nas",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "main": "./dist/index.js",
   "dependencies": {
     "@alicloud/fc2": "^2.2.1",

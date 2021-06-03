@@ -6,6 +6,7 @@ import {
   commandParse,
   reportComponent,
 } from '@serverless-devs/core';
+import FC from './utils/fcResources/fc';
 import _ from 'lodash';
 import * as constant from './constant';
 import { IInputs, IProperties, ICommandParse } from './interface';
@@ -96,10 +97,17 @@ export default class NasCompoent {
     inputs.props.nasDir = nasUriHandler(inputs.props.nasDir);
 
     this.logger.debug(`Whether to open the service configuration: ${!isNasServerStale}`);
+    inputs.props.mountDir = mountDir;
+    const fc = new FcResources(properties.regionId, credentials);
     if (!isNasServerStale) {
-      inputs.props.mountDir = mountDir;
-      const fc = new FcResources(properties.regionId, credentials);
       await fc.init(inputs, mountPointDomain);
+    } else {
+      const { service } = await fc.transformYamlConfigToFcbaseConfig(
+        _.cloneDeep(inputs.props),
+        mountPointDomain,
+        false,
+      );
+      await FC.makeService(fc.fcClient, service);
     }
 
     return { mountPointDomain, fileSystemId, mountDir };
