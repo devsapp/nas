@@ -272,7 +272,7 @@ export default class NasCompoent {
   }
 
   async command(inputs: IInputs) {
-    const commandData: any = commandParse({ args: inputs.args }, { boolean: ['help'], alias: { help: 'h' }});
+    const commandData: any = commandParse({ args: inputs.args }, { boolean: ['help'], alias: { help: 'h' } });
     this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
     if (commandData.data?.help) {
       help(constant.COMMANDHELP);

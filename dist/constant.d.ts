@@ -10,7 +10,17 @@ export declare const RETRYOPTIONS: {
 export declare const REQUESTOPTION: {
     method: string;
 };
-export declare const HELP: ({
+export declare const DEPLOY_HELP: ({
+    header: string;
+    content: string;
+    optionList?: undefined;
+} | {
+    header: string;
+    content: {
+        example: string;
+    }[];
+    optionList?: undefined;
+} | {
     header: string;
     optionList: {
         name: string;
@@ -19,12 +29,26 @@ export declare const HELP: ({
         type: BooleanConstructor;
     }[];
     content?: undefined;
+})[];
+export declare const REOMVE_HELP: ({
+    header: string;
+    content: string;
+    optionList?: undefined;
 } | {
     header: string;
     content: {
         example: string;
     }[];
     optionList?: undefined;
+} | {
+    header: string;
+    optionList: {
+        name: string;
+        description: string;
+        alias: string;
+        type: BooleanConstructor;
+    }[];
+    content?: undefined;
 })[];
 export declare const LSHELP: ({
     header: string;
@@ -100,53 +124,25 @@ export declare const RMHELP: ({
 })[];
 export declare const UPLOADHELP: ({
     header: string;
-    optionList: ({
+    content: string;
+    optionList?: undefined;
+} | {
+    header: string;
+    content: {
+        example: string;
+    }[];
+    optionList?: undefined;
+} | {
+    header: string;
+    optionList: {
         name: string;
         description: string;
         alias: string;
         defaultOption: boolean;
         type: BooleanConstructor;
-    } | {
-        name: string;
-        description: string;
-        alias: string;
-        type: BooleanConstructor;
-        defaultOption?: undefined;
-    })[];
+    }[];
     content?: undefined;
 } | {
-    header: string;
-    content: {
-        desc: string;
-        example: string;
-    }[];
-    optionList?: undefined;
-})[];
-export declare const DOWNLOADHELP: ({
-    header: string;
-    optionList: ({
-        name: string;
-        description: string;
-        alias: string;
-        defaultOption: boolean;
-        type: BooleanConstructor;
-    } | {
-        name: string;
-        description: string;
-        alias: string;
-        type: BooleanConstructor;
-        defaultOption?: undefined;
-    })[];
-    content?: undefined;
-} | {
-    header: string;
-    content: {
-        desc: string;
-        example: string;
-    }[];
-    optionList?: undefined;
-})[];
-export declare const COMMANDHELP: ({
     header: string;
     optionList: {
         name: string;
@@ -155,11 +151,54 @@ export declare const COMMANDHELP: ({
         type: BooleanConstructor;
     }[];
     content?: undefined;
+})[];
+export declare const DOWNLOADHELP: ({
+    header: string;
+    content: string;
+    optionList?: undefined;
 } | {
     header: string;
     content: {
-        desc: string;
         example: string;
     }[];
     optionList?: undefined;
+} | {
+    header: string;
+    optionList: {
+        name: string;
+        description: string;
+        alias: string;
+        defaultOption: boolean;
+        type: BooleanConstructor;
+    }[];
+    content?: undefined;
+} | {
+    header: string;
+    optionList: {
+        name: string;
+        description: string;
+        alias: string;
+        type: BooleanConstructor;
+    }[];
+    content?: undefined;
+})[];
+export declare const COMMANDHELP: ({
+    header: string;
+    content: string;
+    optionList?: undefined;
+} | {
+    header: string;
+    content: {
+        example: string;
+    }[];
+    optionList?: undefined;
+} | {
+    header: string;
+    optionList: {
+        name: string;
+        description: string;
+        alias: string;
+        type: BooleanConstructor;
+    }[];
+    content?: undefined;
 })[];
