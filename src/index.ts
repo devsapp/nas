@@ -66,7 +66,7 @@ export default class NasCompoent {
     const commandData: any = commandParse({ args: inputs.args }, apts);
     this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
     if (commandData.data?.help) {
-      help(constant.HELP);
+      help(constant.DEPLOY_HELP);
       return;
     }
 
@@ -120,7 +120,7 @@ export default class NasCompoent {
     const commandData: any = commandParse({ args: inputs.args }, apts);
     this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
     if (commandData.data?.help) {
-      help(constant.HELP);
+      help(constant.REOMVE_HELP);
       return;
     }
 
@@ -272,13 +272,14 @@ export default class NasCompoent {
   }
 
   async command(inputs: IInputs) {
-    const args = inputs.args.replace('--debug', '');
-
-    if (!args || args.endsWith(' --help') || args.endsWith(' -h')) {
+    const commandData: any = commandParse({ args: inputs.args }, { boolean: ['help'], alias: { help: 'h' }});
+    this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
+    if (commandData.data?.help) {
       help(constant.COMMANDHELP);
       return;
     }
 
+    const args = inputs.args.replace('--debug', '').trim();
     inputs = await this.handlerInputs(inputs, 'command');
 
     const {

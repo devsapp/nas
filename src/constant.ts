@@ -14,26 +14,49 @@ export const REQUESTOPTION = {
   method: 'POST',
 };
 
-export const HELP = [
+export const DEPLOY_HELP = [
   {
-    header: 'Options',
+    header: 'Description',
+    content: 'Deploy nas and auxiliary resources',
+  },
+  {
+    header: 'Usage',
+    content: [
+      { example: '$ s exec -- deploy' },
+    ],
+  },
+  {
+    header: 'Global Options',
     optionList: [
       {
         name: 'help',
-        description: '使用引导',
+        description: 'Deploy help for command',
         alias: 'h',
         type: Boolean,
       },
     ],
   },
+];
+
+export const REOMVE_HELP = [
   {
-    header: 'Examples',
+    header: 'Description',
+    content: 'Remove nas and auxiliary resources',
+  },
+  {
+    header: 'Usage',
     content: [
+      { example: '$ s exec -- remove' },
+    ],
+  },
+  {
+    header: 'Global Options',
+    optionList: [
       {
-        example: '$ s exec -- deploy',
-      },
-      {
-        example: '$ s exec -- remove',
+        name: 'help',
+        description: 'Remove help for command',
+        alias: 'h',
+        type: Boolean,
       },
     ],
   },
@@ -152,27 +175,50 @@ export const RMHELP = [
 
 export const UPLOADHELP = [
   {
+    header: 'Upload',
+    content: 'Upload resources.',
+  },
+  {
+    header: 'Usage',
+    content: [
+      { example: '$ s exec -- upload <option>' },
+    ],
+  },
+  {
     header: 'Options',
     optionList: [
       {
         name: 'recursive',
-        description: '迭代复制文件夹内容',
+        description: 'Iterate to copy folder content',
         alias: 'r',
         defaultOption: false,
         type: Boolean,
       },
       {
         name: 'no-clobber',
-        description: '不覆盖已存在文件',
+        description: 'Do not override existing files',
         alias: 'n',
         defaultOption: false,
         type: Boolean,
       },
+    ],
+  },
+  {
+    header: 'Global Options',
+    optionList: [
       {
         name: 'help',
-        description: '使用引导',
+        description: 'Upload help for command',
         alias: 'h',
         type: Boolean,
+      },
+    ],
+  },
+  {
+    header: 'Examples with Yaml',
+    content: [
+      {
+        example: '$ s exec -- upload /home/usr/demo.file nas://<fc_dir>',
       },
     ],
   },
@@ -180,7 +226,6 @@ export const UPLOADHELP = [
     header: 'Examples',
     content: [
       {
-        desc: '使用: upload [options] <src_path> <fc_dir>',
         example: '$ s exec -- upload /home/usr/demo.file nas://<fc_dir>',
       },
     ],
@@ -189,35 +234,49 @@ export const UPLOADHELP = [
 
 export const DOWNLOADHELP = [
   {
+    header: 'Download',
+    content: 'Download resources.',
+  },
+  {
+    header: 'Usage',
+    content: [
+      { example: '$ s exec -- download <option>' },
+    ],
+  },
+  {
     header: 'Options',
     optionList: [
       {
         name: 'recursive',
-        description: '迭代复制文件夹内容',
+        description: 'Iterate to copy folder content',
         alias: 'r',
         defaultOption: false,
         type: Boolean,
       },
       {
         name: 'no-clobber',
-        description: '不覆盖已存在文件',
+        description: 'Do not override existing files',
         alias: 'n',
         defaultOption: false,
         type: Boolean,
       },
+    ],
+  },
+  {
+    header: 'Global Options',
+    optionList: [
       {
         name: 'help',
-        description: '使用引导',
+        description: 'Download help for command',
         alias: 'h',
         type: Boolean,
       },
     ],
   },
   {
-    header: 'Examples',
+    header: 'Examples with Yaml',
     content: [
       {
-        desc: '使用: download [options] <fc_dir> <src_path>',
         example: '$ s exec -- download nas://<fc_dir> /home/usr/demo',
       },
     ],
@@ -226,11 +285,21 @@ export const DOWNLOADHELP = [
 
 export const COMMANDHELP = [
   {
-    header: 'Options',
+    header: 'Command',
+    content: 'Operation instruction.',
+  },
+  {
+    header: 'Usage',
+    content: [
+      { example: '$ s exec -- command <option>' },
+    ],
+  },
+  {
+    header: 'Global Options',
     optionList: [
       {
         name: 'help',
-        description: '使用引导',
+        description: 'Download help for command',
         alias: 'h',
         type: Boolean,
       },
@@ -240,7 +309,6 @@ export const COMMANDHELP = [
     header: 'Examples',
     content: [
       {
-        desc: '使用: command <cmd>',
         example: '$ s exec -- command ls nas:///<nas_dir>',
       },
     ],
