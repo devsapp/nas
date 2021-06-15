@@ -3,6 +3,7 @@ import { IProperties, ICredentials, INasInitResponse } from '../interface';
 export default class Nas {
     logger: ILogger;
     nasClient: any;
+    stdoutFormatter: any;
     constructor(regionId: any, profile: ICredentials);
     init(properties: IProperties): Promise<INasInitResponse>;
     remove(properties: IProperties): Promise<void>;
