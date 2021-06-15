@@ -2,12 +2,14 @@ import { HLogger, ILogger } from '@serverless-devs/core';
 import Pop from '@alicloud/pop-core';
 import _ from 'lodash';
 import { getTimeout, promptForConfirmContinue, sleep } from './utils';
+import StdoutFormatter from '../stdout-formatter';
 import { CONTEXT, REQUESTOPTION } from '../constant';
 import { IProperties, ICredentials, INasInitResponse } from '../interface';
 
 export default class Nas {
   @HLogger(CONTEXT) logger: ILogger;
   nasClient: any;
+  stdoutFormatter = StdoutFormatter.stdoutFormatter;
 
   constructor(regionId, profile: ICredentials) {
     this.nasClient = new Pop({
@@ -28,31 +30,29 @@ export default class Nas {
     let fileSystemId = await this.findNasFileSystem(regionId, nasName);
 
     if (!fileSystemId) {
-      this.logger.info('Could not find default nas file system, ready to generate one');
+      this.logger.info(this.stdoutFormatter.create('NasFileSystem', nasName));
 
       fileSystemId = await this.createNasFileSystem(regionId, zoneId, nasName, storageType);
 
-      this.logger.info(
+      this.logger.debug(
         `Default nas file system has been generated, fileSystemId is: ${fileSystemId}`,
       );
     } else {
-      this.logger.info(`Nas file system already generated, fileSystemId is: ${fileSystemId}`);
+      this.logger.debug(`Nas file system already generated, fileSystemId is: ${fileSystemId}`);
     }
 
     let mountTargetDomain = await this.findMountTarget(regionId, fileSystemId, vpcId, vSwitchId);
 
     if (mountTargetDomain) {
-      this.logger.info(
+      this.logger.debug(
         `Nas file system mount target is already created, mountTargetDomain is: ${mountTargetDomain}.`,
       );
     } else {
-      this.logger.info(
-        'Could not find default nas file system mount target, ready to generate one',
-      );
+      this.logger.info(this.stdoutFormatter.create('MountTarget', fileSystemId));
 
       mountTargetDomain = await this.createMountTarget(regionId, fileSystemId, vpcId, vSwitchId);
 
-      this.logger.info(
+      this.logger.debug(
         `Default nas file system mount target has been generated, mount domain is: ${mountTargetDomain}`,
       );
     }
@@ -73,26 +73,26 @@ export default class Nas {
     if (nasName) {
       fileSystemId = await this.findNasFileSystem(regionId, nasName);
       if (!fileSystemId) {
-        this.logger.warn(`${nasName} not found under ${regionId}.`);
+        this.logger.warn(this.stdoutFormatter.warn('NasFileSystem', `${nasName} not found under ${regionId}.`));
         return;
       }
     }
 
     const mountTargetDomain = await this.findMountTarget(regionId, fileSystemId, vpcId, vSwitchId);
-    this.logger.info(`Found mount target domain is: ${mountTargetDomain}`);
+    this.logger.debug(`Found mount target domain is: ${mountTargetDomain}`);
     if (mountTargetDomain) {
       const p = {
         FileSystemId: fileSystemId,
         MountTargetDomain: mountTargetDomain,
       };
-      this.logger.info(`DeleteMountTarget param is: ${JSON.stringify(p)}`);
+      this.logger.info(this.stdoutFormatter.remove('MountTarget', mountTargetDomain));
       await this.nasClient.request('DeleteMountTarget', p, REQUESTOPTION);
-      this.logger.info(`Delete ${mountTargetDomain} success.`);
+      this.logger.debug(`Delete ${mountTargetDomain} success.`);
     }
 
-    this.logger.info(`DeleteFileSystem ${fileSystemId} start...`);
+    this.logger.info(this.stdoutFormatter.remove('FileSystem', fileSystemId));
     await this.nasClient.request('DeleteFileSystem', { FileSystemId: fileSystemId }, REQUESTOPTION);
-    this.logger.info(`DeleteFileSystem ${fileSystemId} success.`);
+    this.logger.debug(`DeleteFileSystem ${fileSystemId} success.`);
   }
 
   async findNasFileSystem(regionId: string, description: string): Promise<undefined | string> {

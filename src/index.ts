@@ -10,6 +10,7 @@ import FC from './utils/fcResources/fc';
 import _ from 'lodash';
 import * as constant from './constant';
 import { IInputs, IProperties, ICommandParse } from './interface';
+import StdoutFormatter from './stdout-formatter';
 import Nas from './utils/nas';
 import Common from './utils/common';
 import Version from './utils/version';
@@ -20,7 +21,7 @@ import { parseNasUri } from './utils/common/utils';
 export default class NasCompoent {
   @HLogger(constant.CONTEXT) logger: ILogger;
 
-  deleteCredentials(inputs) {
+  private deleteCredentials(inputs) {
     // @ts-ignore
     delete inputs.Credentials;
     // @ts-ignore
@@ -28,13 +29,13 @@ export default class NasCompoent {
     this.logger.debug(`inputs params: ${JSON.stringify(inputs)}`);
   }
 
-  reportComponent(command: string, uid: string) {
+  private reportComponent(command: string, uid: string) {
     if (uid) {
       reportComponent(constant.CONTEXT_NAME, { uid, command });
     }
   }
 
-  async handlerInputs(inputs, command?: string) {
+  private async handlerInputs(inputs, command?: string) {
     const credentials = await getCredential(inputs.project.access);
     if (command) {
       this.reportComponent(command, credentials.AccountID);
@@ -59,6 +60,10 @@ export default class NasCompoent {
     return inputs;
   }
 
+  private async initFormatter() {
+    await StdoutFormatter.initStdout();
+  }
+
   async deploy(inputs: IInputs, isNasServerStale: boolean) {
     this.deleteCredentials(inputs);
 
@@ -69,6 +74,7 @@ export default class NasCompoent {
       help(constant.DEPLOY_HELP);
       return;
     }
+    await this.initFormatter();
 
     const credentials = await getCredential(inputs.project.access);
     if (!isNasServerStale) {
@@ -82,7 +88,7 @@ export default class NasCompoent {
     let fileSystemId = '';
     if (properties.mountPointDomain) {
       mountPointDomain = properties.mountPointDomain;
-      this.logger.info('Specify parameters, reuse configuration.');
+      this.logger.debug('Specify parameters, reuse configuration.');
     } else {
       const nas = new Nas(properties.regionId, credentials);
       const nasInitResponse = await nas.init(properties);
@@ -123,6 +129,7 @@ export default class NasCompoent {
       help(constant.REOMVE_HELP);
       return;
     }
+    await this.initFormatter();
 
     const { regionId } = inputs.props;
     const credentials = await getCredential(inputs.project.access);
@@ -144,6 +151,7 @@ export default class NasCompoent {
       help(constant.LSHELP);
       return;
     }
+    await this.initFormatter();
 
     inputs = await this.handlerInputs(inputs, 'ls');
 
@@ -191,6 +199,7 @@ export default class NasCompoent {
       help(constant.RMHELP);
       return;
     }
+    await this.initFormatter();
 
     inputs = await this.handlerInputs(inputs, 'rm');
 
@@ -234,6 +243,7 @@ export default class NasCompoent {
       help(constant[`${command.toLocaleUpperCase()}HELP`]);
       return;
     }
+    await this.initFormatter();
 
     inputs = await this.handlerInputs(inputs, command);
 
@@ -278,6 +288,7 @@ export default class NasCompoent {
       help(constant.COMMANDHELP);
       return;
     }
+    await this.initFormatter();
 
     const args = inputs.args.replace('--debug', '').trim();
     inputs = await this.handlerInputs(inputs, 'command');

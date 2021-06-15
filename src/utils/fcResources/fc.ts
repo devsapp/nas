@@ -12,7 +12,7 @@ export default class Component {
     if (triggers) {
       for (const { triggerName } of triggers) {
         try {
-          this.logger.debug('Delete trigger...');
+          this.logger.debug(`Delete trigger: ${serviceName}/${functionName}/${triggerName}`);
           await client.deleteTrigger(serviceName, functionName, triggerName);
         } catch (ex) {
           this.logger.debug(`ex code: ${ex.code}, ex: ${ex.message}`);
@@ -21,14 +21,14 @@ export default class Component {
     }
 
     try {
-      this.logger.debug('Delete function...');
+      this.logger.debug(`Delete function: ${serviceName}/${functionName}`);
       await client.deleteFunction(serviceName, functionName);
     } catch (ex) {
       this.logger.debug(`ex code: ${ex.code}, ex: ${ex.message}`);
     }
 
     try {
-      this.logger.debug('Delete service...');
+      this.logger.debug(`Delete service: ${serviceName}`);
       await client.deleteService(serviceName);
     } catch (ex) {
       this.logger.debug(`ex code: ${ex.code}, ex: ${ex.message}`);

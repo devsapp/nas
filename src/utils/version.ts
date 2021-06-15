@@ -3,6 +3,7 @@ import { HLogger, ILogger } from '@serverless-devs/core';
 import path from 'path';
 import { CONTEXT } from '../constant';
 import { ICredentials } from '../interface';
+import StdoutFormatter from '../stdout-formatter';
 import { fcClient } from './client';
 import { getHttpTriggerPath, versionPath } from './common/generatePath';
 
@@ -31,14 +32,17 @@ export default class Version {
       if (!isNew) {
         this.logger.warn(
           CONTEXT,
-          'The auxiliary function is not the latest code, the function needs to be updated.',
+          StdoutFormatter.stdoutFormatter.warn('function', 'The auxiliary function is not the latest code, the function needs to be updated'),
         );
       }
 
       return isNew;
     } catch (ex) {
       this.logger.debug(CONTEXT, ex);
-      this.logger.warn(CONTEXT, 'Failed to request version, update function.');
+      this.logger.warn(
+        CONTEXT,
+        StdoutFormatter.stdoutFormatter.warn('function', 'Failed to request version, update function'),
+      );
       return false;
     }
   }
