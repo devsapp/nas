@@ -67,7 +67,7 @@ export default class Ls {
       this.logger.log(`'✔' remove ${fcPath} done`, 'green');
     } catch (ex) {
       if (isRootDir && ex.message.includes("cannot remove '*': No such file or directory")) {
-        this.logger.debug(ex);
+        this.logger.debug(ex.stack);
       } else {
         throw ex;
       }

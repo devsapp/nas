@@ -302,7 +302,7 @@ export default class Cp {
     const vm = spinner(`Start uploading file: ${actualDstPath}`);
     const { data } = await this.fcClient.post(urlPath, { cmd });
     console.log();
-    this.logger.debug(data);
+    this.logger.debug(JSON.stringify(data));
     if (data.error) {
       vm.fail();
       throw new Error(data.error);
@@ -565,7 +565,7 @@ export default class Cp {
           // cmd = cmd + ` '${unzipFile}'`;
           this.logger.debug(`Send unzip request cmd is: ${cmd}.`);
           const res = await this.fcClient.post(`${nasHttpTriggerPath }commands`, { cmd });
-          this.logger.debug(res);
+          this.logger.debug(JSON.stringify(res));
         } catch (error) {
           // zip 中存在特殊文件名，例如 $data.js
           if (error.message && error.message?.includes('filename not matched')) {

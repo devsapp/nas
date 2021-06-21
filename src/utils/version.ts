@@ -38,7 +38,7 @@ export default class Version {
 
       return isNew;
     } catch (ex) {
-      this.logger.debug(CONTEXT, ex);
+      this.logger.debug(CONTEXT, ex.stack);
       this.logger.warn(
         CONTEXT,
         StdoutFormatter.stdoutFormatter.warn('function', 'Failed to request version, update function'),
