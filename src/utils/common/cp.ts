@@ -568,11 +568,11 @@ export default class Cp {
           this.logger.debug(res);
         } catch (error) {
           // zip 中存在特殊文件名，例如 $data.js
-          if (error.message && error.message.includes('filename not matched')) {
+          if (error.message && error.message?.includes('filename not matched')) {
             this.logger.error(error);
             return;
           }
-          if (error.message && error.message.toLowerCase().includes('permission denied')) {
+          if (error.message && error.message.toLowerCase()?.includes('permission denied')) {
             // TODO : 权限问题更加详细的提示
             this.logger.error(error);
             return;

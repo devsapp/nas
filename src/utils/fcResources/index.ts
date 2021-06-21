@@ -172,7 +172,7 @@ export default class Resources {
         this.logger.warn(
           `Invoke fc function ${serviceName}/${functionName} response is: ${decodedLog}`,
         );
-        if (decodedLog.toString().toLowerCase().includes('permission denied')) {
+        if (decodedLog.toString().toLowerCase()?.includes('permission denied')) {
           throw new Error(
             `fc utils function ${functionName} invoke error, error message is: ${decodedLog}`,
           );
