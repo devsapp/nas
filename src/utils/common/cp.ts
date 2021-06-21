@@ -320,7 +320,7 @@ export default class Cp {
 
     this.logger.debug(`checking uploaded file ${actualDstPath} hash`);
     const checkRes = await this.checkFileHash(nasHttpTriggerPath, actualDstPath, fileHash);
-    this.logger.debug(checkRes.data);
+    this.logger.debug(JSON.stringify(checkRes?.data || ''));
 
     this.logger.debug("'✔' hash unchanged");
   }
