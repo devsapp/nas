@@ -31,3 +31,11 @@ export function getMountDir(mountPointDomain: string, nasDir: string) {
   const [systemId, region] = mountPointDomain.split('.');
   return `/mnt/${systemId}-${region}/${nasUriHandler(nasDir)}`;
 }
+
+export function transformNasDirPath (url: string) {
+  const isWin = process.platform === 'win32';
+  if (isWin) {
+    return url.replace(/\\/g, '/');
+  }
+  return url;
+}

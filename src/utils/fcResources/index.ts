@@ -5,7 +5,7 @@ import Version from '../version';
 import { fcClient } from '../client';
 import { CONTEXT, FUNNAME } from '../../constant';
 import { IInputs, IProperties, ICredentials } from '../../interface';
-import { sleep } from '../utils';
+import { sleep, transformNasDirPath } from '../utils';
 import FC from './fc';
 
 const ENSURENASDIREXISTSERVICE = 'ensure-nas-dir-exist-service';
@@ -78,7 +78,7 @@ export default class Resources {
     await this.invokeFcUtilsFunction(
       serviceName,
       functionName,
-      JSON.stringify([path.join(mountDir, nasDir)]),
+      transformNasDirPath(JSON.stringify([path.join(mountDir, nasDir)])),
     );
   }
 
