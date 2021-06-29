@@ -32,7 +32,7 @@ export function getMountDir(mountPointDomain: string, nasDir: string) {
   return `/mnt/${systemId}-${region}/${nasUriHandler(nasDir)}`;
 }
 
-export function transformNasDirPath (url: string) {
+export function transformNasDirPath(url: string) {
   const isWin = process.platform === 'win32';
   if (isWin) {
     return url.replace(/\\/g, '/');

@@ -29,7 +29,12 @@ export function parseNasUri(nasUri: string, mountDir: string, nasDirYmlInput: st
     }
   }
 
-  const res = nasUri.replace(`/${nasDirYmlInput}`, mountDir).match(NAS_URI_PATTERN);
+  let nasPath = nasUri.replace(`/${nasDirYmlInput}`, mountDir);
+  if (!nasDirYmlInput) {
+    nasPath = `nas://${mountDir}${nasUri.slice(8)}`;
+  }
+
+  const res = nasPath.match(NAS_URI_PATTERN);
 
   if (!res) {
     throw new Error(`Invalid nas path: ${nasUri}`);
