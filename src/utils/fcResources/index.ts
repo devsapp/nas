@@ -66,6 +66,7 @@ export default class Resources {
       true,
     );
     await FC.deploy(this.fcClient, ensureNasDirProps);
+    await sleep(500);
 
     const { serviceName, functionName } = ensureNasDirProps.function;
     const { mountDir, nasDir } = inputs.props;

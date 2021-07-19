@@ -67,14 +67,14 @@ export default class Nas {
     let { fileSystemId } = properties;
     if (!nasName || !fileSystemId) {
       this.logger.debug('Not found nasName or fileSystemId,skip remove nas.');
-      return;
+      return false;
     }
 
     if (nasName) {
       fileSystemId = await this.findNasFileSystem(regionId, nasName);
       if (!fileSystemId) {
         this.logger.warn(this.stdoutFormatter.warn('NasFileSystem', `${nasName} not found under ${regionId}.`));
-        return;
+        return false;
       }
     }
 
@@ -93,6 +93,7 @@ export default class Nas {
     this.logger.info(this.stdoutFormatter.remove('FileSystem', fileSystemId));
     await this.nasClient.request('DeleteFileSystem', { FileSystemId: fileSystemId }, REQUESTOPTION);
     this.logger.debug(`DeleteFileSystem ${fileSystemId} success.`);
+    return fileSystemId;
   }
 
   async findNasFileSystem(regionId: string, description: string): Promise<undefined | string> {

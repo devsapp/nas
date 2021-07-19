@@ -17,56 +17,13 @@ import Version from './utils/version';
 import FcResources from './utils/fcResources';
 import { getMountDir, nasUriHandler } from './utils/utils';
 import { parseNasUri } from './utils/common/utils';
+import Base from './common/base';
 
-export default class NasCompoent {
+export default class NasCompoent extends Base {
   @HLogger(constant.CONTEXT) logger: ILogger;
 
-  private deleteCredentials(inputs) {
-    // @ts-ignore
-    delete inputs.Credentials;
-    // @ts-ignore
-    delete inputs.credentials;
-    this.logger.debug(`inputs params: ${JSON.stringify(inputs)}`);
-  }
-
-  private reportComponent(command: string, uid: string) {
-    if (uid) {
-      reportComponent(constant.CONTEXT_NAME, { uid, command });
-    }
-  }
-
-  private async handlerInputs(inputs, command?: string) {
-    const credentials = await getCredential(inputs.project.access);
-    if (command) {
-      this.reportComponent(command, credentials.AccountID);
-    }
-
-    const {
-      regionId,
-      serviceName,
-      functionName = constant.FUNNAME,
-    } = inputs.props;
-
-    const isNasServerStale = await Version.isNasServerStale(
-      credentials,
-      regionId,
-      serviceName,
-      functionName,
-    );
-    const { mountDir } = await this.deploy(inputs, isNasServerStale);
-    inputs.props.mountDir = mountDir;
-
-    this.deleteCredentials(inputs);
-    return inputs;
-  }
-
-  private async initFormatter() {
-    await StdoutFormatter.initStdout();
-  }
-
   async deploy(inputs: IInputs, isNasServerStale: boolean) {
-    this.deleteCredentials(inputs);
-
+    this.logger.debug(`input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
     const apts = { boolean: ['help'], alias: { help: 'h' } };
     const commandData: any = commandParse({ args: inputs.args }, apts);
     this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
@@ -76,7 +33,7 @@ export default class NasCompoent {
     }
     await this.initFormatter();
 
-    const credentials = await getCredential(inputs.project.access);
+    const credentials = inputs.credentials || await getCredential(inputs.project?.access);
     if (!isNasServerStale) {
       this.reportComponent('deploy', credentials.AccountID);
     }
@@ -96,6 +53,14 @@ export default class NasCompoent {
 
       mountPointDomain = nasInitResponse.mountTargetDomain;
       fileSystemId = nasInitResponse.fileSystemId;
+      super.__report({
+        name: 'nas',
+        content: {
+          region: properties.regionId,
+          mountPointDomain,
+          fileSystemId,
+        },
+      });
     }
     this.logger.debug(`Create nas success, mountPointDomain: ${mountPointDomain}`);
 
@@ -120,8 +85,7 @@ export default class NasCompoent {
   }
 
   async remove(inputs: IInputs) {
-    this.deleteCredentials(inputs);
-
+    this.logger.debug(`input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
     const apts = { boolean: ['help'], alias: { help: 'h' } };
     const commandData: any = commandParse({ args: inputs.args }, apts);
     this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
@@ -132,14 +96,24 @@ export default class NasCompoent {
     await this.initFormatter();
 
     const { regionId } = inputs.props;
-    const credentials = await getCredential(inputs.project.access);
+    const credentials = inputs.credentials || await getCredential(inputs.project.access);
     this.reportComponent('remove', credentials.AccountID);
 
     const fc = new FcResources(regionId, credentials);
     await fc.remove(inputs);
 
     const nas = new Nas(regionId, credentials);
-    await nas.remove(inputs.props);
+    const fileSystemId = await nas.remove(inputs.props);
+    if (fileSystemId) {
+      super.__report({
+        name: 'nas',
+        content: {
+          region: regionId,
+          mountPointDomain: '',
+          fileSystemId: '',
+        },
+      });
+    }
   }
 
   async ls(inputs: IInputs) {
@@ -312,5 +286,38 @@ export default class NasCompoent {
       mountDir,
       nasDir,
     });
+  }
+
+  private reportComponent(command: string, uid: string) {
+    reportComponent(constant.CONTEXT_NAME, { uid, command });
+  }
+
+  private async handlerInputs(inputs, command?: string) {
+    this.logger.debug(`input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
+    const credentials = inputs.credentials || await getCredential(inputs.project?.access);
+    if (command) {
+      this.reportComponent(command, credentials.AccountID);
+    }
+
+    const {
+      regionId,
+      serviceName,
+      functionName = constant.FUNNAME,
+    } = inputs.props;
+
+    const isNasServerStale = await Version.isNasServerStale(
+      credentials,
+      regionId,
+      serviceName,
+      functionName,
+    );
+    const { mountDir } = await this.deploy(inputs, isNasServerStale);
+    inputs.props.mountDir = mountDir;
+
+    return inputs;
+  }
+
+  private async initFormatter() {
+    await StdoutFormatter.initStdout();
   }
 }
