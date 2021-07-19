@@ -1,11 +1,8 @@
 import { ILogger } from '@serverless-devs/core';
 import { IInputs } from './interface';
-export default class NasCompoent {
+import Base from './common/base';
+export default class NasCompoent extends Base {
     logger: ILogger;
-    private deleteCredentials;
-    private reportComponent;
-    private handlerInputs;
-    private initFormatter;
     deploy(inputs: IInputs, isNasServerStale: boolean): Promise<{
         mountPointDomain: string;
         fileSystemId: string;
@@ -18,4 +15,7 @@ export default class NasCompoent {
     upload(inputs: IInputs): Promise<void>;
     download(inputs: IInputs): Promise<void>;
     command(inputs: IInputs): Promise<void>;
+    private reportComponent;
+    private handlerInputs;
+    private initFormatter;
 }

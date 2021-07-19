@@ -6,7 +6,7 @@ export default class Nas {
     stdoutFormatter: any;
     constructor(regionId: any, profile: ICredentials);
     init(properties: IProperties): Promise<INasInitResponse>;
-    remove(properties: IProperties): Promise<void>;
+    remove(properties: IProperties): Promise<string | false>;
     findNasFileSystem(regionId: string, description: string): Promise<undefined | string>;
     findMountTarget(region: string, fileSystemId: string, vpcId: string, vSwitchId: string): Promise<string | null>;
     createNasFileSystem(regionId: string, zoneId: string, description: string, storageType?: string): Promise<any>;
