@@ -55,6 +55,7 @@ export default class NasCompoent extends Base {
       fileSystemId = nasInitResponse.fileSystemId;
       super.__report({
         name: 'nas',
+        access: inputs.project?.access,
         content: {
           region: properties.regionId,
           mountPointDomain,
@@ -96,7 +97,7 @@ export default class NasCompoent extends Base {
     await this.initFormatter();
 
     const { regionId } = inputs.props;
-    const credentials = inputs.credentials || await getCredential(inputs.project.access);
+    const credentials = inputs.credentials || await getCredential(inputs.project?.access);
     this.reportComponent('remove', credentials.AccountID);
 
     const fc = new FcResources(regionId, credentials);
@@ -107,6 +108,7 @@ export default class NasCompoent extends Base {
     if (fileSystemId) {
       super.__report({
         name: 'nas',
+        access: inputs.project?.access,
         content: {
           region: regionId,
           mountPointDomain: '',
