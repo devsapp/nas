@@ -13,7 +13,10 @@ export const isNasProtocol = (inputPath: string): boolean => inputPath.indexOf('
 
 export function commandCmd(args: string, mountDir: string, nasDirYmlInput: string): string {
   nasDirYmlInput = nasUriHandler(nasDirYmlInput);
-  const reg = new RegExp(`nas:///${nasDirYmlInput}`, 'g');
+  let reg = new RegExp(`/${nasDirYmlInput}`);
+  if (args.includes('nas://')) {
+    reg = new RegExp(`nas:///${nasDirYmlInput}`, 'g');
+  }
 
   return args.replace(reg, mountDir);
 }
