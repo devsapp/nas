@@ -33,7 +33,7 @@ export default class NasCompoent extends Base {
     }
     await this.initFormatter();
 
-    const credentials = inputs.credentials || await getCredential(inputs.project?.access);
+    const credentials = await this.getCredential(inputs.credentials, inputs.project?.access);
     if (!isNasServerStale) {
       this.reportComponent('deploy', credentials.AccountID);
     }
@@ -97,7 +97,7 @@ export default class NasCompoent extends Base {
     await this.initFormatter();
 
     const { regionId } = inputs.props;
-    const credentials = inputs.credentials || await getCredential(inputs.project?.access);
+    const credentials = await this.getCredential(inputs.credentials, inputs.project?.access);
     this.reportComponent('remove', credentials.AccountID);
 
     const fc = new FcResources(regionId, credentials);
@@ -138,7 +138,7 @@ export default class NasCompoent extends Base {
       nasDir: nasDirYmlInput,
       mountDir,
     } = inputs.props;
-    const credentials = await getCredential(inputs.project.access);
+    const credentials = await this.getCredential(inputs.credentials, inputs.project?.access);
 
     const common = new Common.Ls(regionId, credentials);
 
@@ -187,7 +187,7 @@ export default class NasCompoent extends Base {
       mountDir,
     } = inputs.props;
 
-    const credentials = await getCredential(inputs.project.access);
+    const credentials = await this.getCredential(inputs.credentials, inputs.project?.access);
     const common = new Common.Rm(regionId, credentials);
 
     const targetPath = parseNasUri(argv_paras[0], mountDir, nasDirYmlInput);
@@ -232,7 +232,7 @@ export default class NasCompoent extends Base {
       mountDir,
     } = inputs.props;
 
-    const credentials = await getCredential(inputs.project.access);
+    const credentials = await this.getCredential(inputs.credentials, inputs.project?.access);
     const common = new Common.Cp(regionId, credentials);
     await common.cp({
       srcPath: argv_paras[0],
@@ -277,7 +277,7 @@ export default class NasCompoent extends Base {
       functionName = constant.FUNNAME,
     } = inputs.props;
 
-    const credentials = await getCredential(inputs.project.access);
+    const credentials = await this.getCredential(inputs.credentials, inputs.project?.access);
 
     const common = new Common.Command(regionId, credentials);
 
@@ -290,13 +290,17 @@ export default class NasCompoent extends Base {
     });
   }
 
+  private async getCredential(credentials, access: string) {
+    return _.isEmpty(credentials) ? await getCredential(access) : credentials;
+  }
+
   private reportComponent(command: string, uid: string) {
     reportComponent(constant.CONTEXT_NAME, { uid, command });
   }
 
   private async handlerInputs(inputs, command?: string) {
     this.logger.debug(`input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
-    const credentials = inputs.credentials || await getCredential(inputs.project?.access);
+    const credentials = await this.getCredential(inputs.credentials, inputs.project?.access);
     if (command) {
       this.reportComponent(command, credentials.AccountID);
     }
