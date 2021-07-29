@@ -17,6 +17,7 @@ import Version from './utils/version';
 import FcResources from './utils/fcResources';
 import { getMountDir, nasUriHandler } from './utils/utils';
 import { parseNasUri } from './utils/common/utils';
+import { FcEndpoint } from './utils/client';
 import Base from './common/base';
 
 export default class NasCompoent extends Base {
@@ -291,6 +292,8 @@ export default class NasCompoent extends Base {
   }
 
   private async getCredential(credentials, access: string) {
+    await FcEndpoint.getFcEndpoint();
+    this.logger.debug(`fc endpoint: ${FcEndpoint.endpoint}`);
     return _.isEmpty(credentials) ? await getCredential(access) : credentials;
   }
 
