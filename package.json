@@ -2,6 +2,7 @@
   "name": "nas",
   "version": "0.0.27",
   "main": "./dist/index.js",
+  "autoInstall": false,
   "dependencies": {
     "@alicloud/fc2": "^2.2.1",
     "@alicloud/pop-core": "^1.7.10",
@@ -27,15 +28,15 @@
     "ts-jest": "^26.2.0",
     "ts-loader": "^8.0.14",
     "typescript": "^3.9.7",
-    "webpack": "^4.46.0",
-    "webpack-cli": "^4.4.0"
+    "@vercel/ncc": "^0.24.0"
   },
   "scripts": {
     "start": "npm run dev",
     "dev": "npx tsc -w -p tsconfig.json",
-    "prebuild": "rimraf dist",
+    "prebuild": "rm -rf node_modules && rm -rf package-lock.json && npm i && rimraf dist",
+    "build": "npm run fix && npm run lint && ncc build src/index.ts -m -e @serverless-devs/core -o dist",
+    "postbuild": "npm run package-zip",
     "package-zip": "rm -rf ./dist/utils/fcResources/nas-server-*.zip && make -C ./src/utils/fcResources/ensure-nas-dir-exist package && make -C ./src/utils/fcResources/nas-server package",
-    "build": "npx tsc -p tsconfig.json",
     "test": "jest",
     "test:cov": "jest --coverage",
     "lint": "f2elint scan",
