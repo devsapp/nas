@@ -1,8 +1,14 @@
 import inquirer from 'inquirer';
+import path from 'path';
 
 export const getTimeout = (): number => parseInt(process.env.NAS_FUNCTION_TIMEOUT) || 600 * 1000;
 
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// 只能判断非根目录的路径
+export const isNcc = (basePath: string): boolean => {
+  return path.basename(basePath) === 'dist';
+};
 
 export async function promptForConfirmContinue(message: string): Promise<boolean> {
   if (!process.stdin.isTTY) {
