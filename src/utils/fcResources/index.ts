@@ -5,15 +5,23 @@ import Version from '../version';
 import { fcClient } from '../client';
 import { CONTEXT, FUNNAME } from '../../constant';
 import { IInputs, IProperties, ICredentials } from '../../interface';
-import { sleep, transformNasDirPath } from '../utils';
+import { sleep, transformNasDirPath, isNcc } from '../utils';
 import FC from './fc';
 
 const ENSURENASDIREXISTSERVICE = 'ensure-nas-dir-exist-service';
 const ENSURENASDIREXISTFUNCTION = 'nas_dir_checker';
-const ENSURENASDIREXISTFILENAME = path.join(__dirname, 'ensure-nas-dir-exist.zip');
 
-const getNasServerFile = async (): Promise<string> =>
-  path.join(__dirname, `nas-server-${await Version.getVersion()}.zip`);
+let ENSURENASDIREXISTFILENAME = path.join(__dirname, 'ensure-nas-dir-exist.zip');
+if (isNcc(__dirname)) {
+  ENSURENASDIREXISTFILENAME = path.join(__dirname, 'utils', 'fcResources', 'ensure-nas-dir-exist.zip');
+}
+
+const getNasServerFile = async (): Promise<string> => {
+  if (isNcc(__dirname)) {
+    return path.join(__dirname, 'utils', 'fcResources', `nas-server-${await Version.getVersion()}.zip`);
+  }
+  return path.join(__dirname, `nas-server-${await Version.getVersion()}.zip`);
+};
 
 export default class Resources {
   @HLogger(CONTEXT) logger: ILogger;

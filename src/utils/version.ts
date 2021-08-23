@@ -5,6 +5,7 @@ import { CONTEXT } from '../constant';
 import { ICredentials } from '../interface';
 import StdoutFormatter from '../stdout-formatter';
 import { fcClient } from './client';
+import { isNcc } from './utils';
 import { getHttpTriggerPath, versionPath } from './common/generatePath';
 
 export default class Version {
@@ -48,8 +49,10 @@ export default class Version {
   }
 
   static async getVersion() {
-    const versionFile = path.join(__dirname, 'fcResources', 'VERSION');
-
+    let versionFile = path.join(__dirname, 'fcResources', 'VERSION');
+    if (isNcc(__dirname)) {
+      versionFile = path.join(__dirname, 'utils', 'fcResources', 'VERSION');
+    }
     return (await fs.readFile(versionFile)).toString();
   }
 }
