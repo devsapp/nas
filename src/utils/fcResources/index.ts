@@ -3,13 +3,10 @@ import _ from 'lodash';
 import path from 'path';
 import Version from '../version';
 import { fcClient } from '../client';
-import { CONTEXT, FUNNAME } from '../../constant';
+import { CONTEXT, FUNNAME, ENSURENASDIREXISTSERVICE, ENSURENASDIREXISTFUNCTION } from '../../constant';
 import { IInputs, IProperties, ICredentials } from '../../interface';
 import { sleep, transformNasDirPath, isNcc } from '../utils';
 import FC from './fc';
-
-const ENSURENASDIREXISTSERVICE = 'ensure-nas-dir-exist-service';
-const ENSURENASDIREXISTFUNCTION = 'nas_dir_checker';
 
 let ENSURENASDIREXISTFILENAME = path.join(__dirname, 'ensure-nas-dir-exist.zip');
 if (isNcc(__dirname)) {
@@ -36,9 +33,9 @@ export default class Resources {
   async init(inputs: IInputs, mountPointDomain: string) {
     const vm = spinner('Deploy helper function...');
     try {
-      await this.deployEnsureNasDir(inputs, mountPointDomain);
+      await this.deployEnsureNasDir(inputs, mountPointDomain); // 确保目录辅助函数：确保目录
 
-      await this.deployNasService(inputs, mountPointDomain);
+      await this.deployNasService(inputs, mountPointDomain); // 操作辅助函数：check、cp、ls、command...
     } catch (ex) {
       vm.fail();
       throw ex;

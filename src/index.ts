@@ -1,7 +1,6 @@
 import {
   HLogger,
   ILogger,
-  getCredential,
   help,
   commandParse,
   reportComponent,
@@ -15,7 +14,7 @@ import Nas from './utils/nas';
 import Common from './utils/common';
 import Version from './utils/version';
 import FcResources from './utils/fcResources';
-import { getMountDir, nasUriHandler } from './utils/utils';
+import { getMountDir, nasUriHandler, getCredential } from './utils/utils';
 import { parseNasUri } from './utils/common/utils';
 import Base from './common/base';
 
@@ -33,7 +32,7 @@ export default class NasCompoent extends Base {
     }
     await this.initFormatter();
 
-    const credentials = inputs.credentials || await getCredential(inputs.project?.access);
+    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
     if (!isNasServerStale) {
       this.reportComponent('deploy', credentials.AccountID);
     }
@@ -97,7 +96,7 @@ export default class NasCompoent extends Base {
     await this.initFormatter();
 
     const { regionId } = inputs.props;
-    const credentials = inputs.credentials || await getCredential(inputs.project?.access);
+    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
     this.reportComponent('remove', credentials.AccountID);
 
     const fc = new FcResources(regionId, credentials);
@@ -138,7 +137,7 @@ export default class NasCompoent extends Base {
       nasDir: nasDirYmlInput,
       mountDir,
     } = inputs.props;
-    const credentials = await getCredential(inputs.project.access);
+    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
 
     const common = new Common.Ls(regionId, credentials);
 
@@ -187,7 +186,7 @@ export default class NasCompoent extends Base {
       mountDir,
     } = inputs.props;
 
-    const credentials = await getCredential(inputs.project.access);
+    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
     const common = new Common.Rm(regionId, credentials);
 
     const targetPath = parseNasUri(argv_paras[0], mountDir, nasDirYmlInput);
@@ -232,7 +231,8 @@ export default class NasCompoent extends Base {
       mountDir,
     } = inputs.props;
 
-    const credentials = await getCredential(inputs.project.access);
+    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
+
     const common = new Common.Cp(regionId, credentials);
     await common.cp({
       srcPath: argv_paras[0],
@@ -277,7 +277,7 @@ export default class NasCompoent extends Base {
       functionName = constant.FUNNAME,
     } = inputs.props;
 
-    const credentials = await getCredential(inputs.project.access);
+    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
 
     const common = new Common.Command(regionId, credentials);
 
@@ -296,7 +296,7 @@ export default class NasCompoent extends Base {
 
   private async handlerInputs(inputs, command?: string) {
     this.logger.debug(`input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
-    const credentials = inputs.credentials || await getCredential(inputs.project?.access);
+    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
     if (command) {
       this.reportComponent(command, credentials.AccountID);
     }
@@ -313,7 +313,8 @@ export default class NasCompoent extends Base {
       serviceName,
       functionName,
     );
-    const { mountDir } = await this.deploy(inputs, isNasServerStale);
+    const isCpCommand = ['cp', 'download', 'upload'].includes(command);
+    const { mountDir } = await this.deploy(inputs, isNasServerStale && !isCpCommand);
     inputs.props.mountDir = mountDir;
 
     return inputs;

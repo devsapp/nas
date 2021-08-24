@@ -3,6 +3,9 @@ export const CONTEXT_NAME = 'fc-nas';
 
 export const FUNNAME = 'nas-function';
 
+export const ENSURENASDIREXISTSERVICE = 'ensure-nas-dir-exist-service';
+export const ENSURENASDIREXISTFUNCTION = 'nas_dir_checker';
+
 export const RETRYOPTIONS = {
   retries: 5,
   factor: 2,

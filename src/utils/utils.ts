@@ -1,5 +1,7 @@
 import inquirer from 'inquirer';
 import path from 'path';
+import _ from 'lodash';
+import * as core from '@serverless-devs/core';
 
 export const getTimeout = (): number => parseInt(process.env.NAS_FUNCTION_TIMEOUT) || 600 * 1000;
 
@@ -44,4 +46,11 @@ export function transformNasDirPath(url: string) {
     return url.replace(/\\/g, '/');
   }
   return url;
+}
+
+export async function getCredential(access?: string, credentials?) {
+  if (!_.isEmpty(credentials)) {
+    return credentials;
+  }
+  return await core.getCredential(access);
 }
