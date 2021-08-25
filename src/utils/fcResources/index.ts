@@ -3,13 +3,10 @@ import _ from 'lodash';
 import path from 'path';
 import Version from '../version';
 import { fcClient } from '../client';
-import { CONTEXT, FUNNAME } from '../../constant';
+import { CONTEXT, FUNNAME, ENSURE_NAS_DIR_HELPER_SERVICE, ENSURE_NAS_DIR_EXIST_FUNCTION } from '../../constant';
 import { IInputs, IProperties, ICredentials } from '../../interface';
 import { sleep, transformNasDirPath, isNcc } from '../utils';
 import FC from './fc';
-
-const ENSURENASDIREXISTSERVICE = 'ensure-nas-dir-exist-service';
-const ENSURENASDIREXISTFUNCTION = 'nas_dir_checker';
 
 let ENSURENASDIREXISTFILENAME = path.join(__dirname, 'ensure-nas-dir-exist.zip');
 if (isNcc(__dirname)) {
@@ -36,9 +33,9 @@ export default class Resources {
   async init(inputs: IInputs, mountPointDomain: string) {
     const vm = spinner('Deploy helper function...');
     try {
-      await this.deployEnsureNasDir(inputs, mountPointDomain);
+      await this.deployEnsureNasDirHelperService(inputs, mountPointDomain); // 确保目录辅助函数：确保目录
 
-      await this.deployNasService(inputs, mountPointDomain);
+      await this.deployNasOperationHelperService(inputs, mountPointDomain); // 操作辅助函数：check、cp、ls、command...
     } catch (ex) {
       vm.fail();
       throw ex;
@@ -54,7 +51,7 @@ export default class Resources {
     await FC.remove(this.fcClient, ensureNasDirProps);
   }
 
-  async deployNasService(inputs: IInputs, mountPointDomain: string) {
+  async deployNasOperationHelperService(inputs: IInputs, mountPointDomain: string) {
     const nasServiceInputs = await this.transformYamlConfigToFcbaseConfig(
       _.cloneDeep(inputs.props),
       mountPointDomain,
@@ -67,12 +64,13 @@ export default class Resources {
     await sleep(2500);
   }
 
-  async deployEnsureNasDir(inputs: IInputs, mountPointDomain: string) {
+  async deployEnsureNasDirHelperService(inputs: IInputs, mountPointDomain: string) {
     const ensureNasDirProps = await this.transformYamlConfigToFcbaseConfig(
       _.cloneDeep(inputs.props),
       mountPointDomain,
       true,
     );
+    this.logger.debug(`deploy ensure nas dir input: ${ensureNasDirProps}`);
     await FC.deploy(this.fcClient, ensureNasDirProps);
     await sleep(500);
 
@@ -111,9 +109,9 @@ export default class Resources {
     } = inputProps;
 
     const service = isEnsureNasDirExist
-      ? `${serviceName}-${ENSURENASDIREXISTSERVICE}`
+      ? `${serviceName}-${ENSURE_NAS_DIR_HELPER_SERVICE}`
       : serviceName;
-    const funName = isEnsureNasDirExist ? ENSURENASDIREXISTFUNCTION : functionName;
+    const funName = isEnsureNasDirExist ? ENSURE_NAS_DIR_EXIST_FUNCTION : functionName;
 
     const props: any = {
       region: regionId,
