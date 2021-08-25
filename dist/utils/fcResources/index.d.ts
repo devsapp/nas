@@ -7,8 +7,8 @@ export default class Resources {
     constructor(regionId: string, profile: ICredentials);
     init(inputs: IInputs, mountPointDomain: string): Promise<void>;
     remove(inputs: IInputs): Promise<void>;
-    deployNasService(inputs: IInputs, mountPointDomain: string): Promise<void>;
-    deployEnsureNasDir(inputs: IInputs, mountPointDomain: string): Promise<void>;
+    deployNasOperationHelperService(inputs: IInputs, mountPointDomain: string): Promise<void>;
+    deployEnsureNasDirHelperService(inputs: IInputs, mountPointDomain: string): Promise<void>;
     transformYamlConfigToFcbaseConfig(inputProps: IProperties, mountPointDomain: string, isEnsureNasDirExist: boolean): Promise<any>;
     invokeFcUtilsFunction(serviceName: string, functionName: string, event: string): Promise<void>;
 }

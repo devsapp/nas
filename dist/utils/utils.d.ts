@@ -5,3 +5,4 @@ export declare function promptForConfirmContinue(message: string): Promise<boole
 export declare const nasUriHandler: (nasDirYmlInput: string) => string;
 export declare function getMountDir(mountPointDomain: string, nasDir: string): string;
 export declare function transformNasDirPath(url: string): string;
+export declare function getCredential(access?: string, credentials?: any): Promise<any>;

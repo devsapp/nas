@@ -1,6 +1,8 @@
 export declare const CONTEXT = "FC-NAS";
 export declare const CONTEXT_NAME = "fc-nas";
 export declare const FUNNAME = "nas-function";
+export declare const ENSURE_NAS_DIR_HELPER_SERVICE = "ensure-nas-dir-exist-service";
+export declare const ENSURE_NAS_DIR_EXIST_FUNCTION = "nas_dir_checker";
 export declare const RETRYOPTIONS: {
     retries: number;
     factor: number;
