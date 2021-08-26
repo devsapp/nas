@@ -121,7 +121,7 @@ export default class Resources {
         vpcConfig: {
           vpcId,
           securityGroupId,
-          vswitchIds: [vSwitchId],
+          vswitchIds: _.isString(vSwitchId) ? [vSwitchId] : vSwitchId,
         },
         nasConfig: {
           userId,

@@ -27,6 +27,7 @@ export default class Nas {
 
   async init(properties: IProperties): Promise<INasInitResponse> {
     const { regionId, nasName, vpcId, zoneId, vSwitchId, storageType } = properties;
+    const vswitchId = _.isString(vSwitchId) ? vSwitchId : vSwitchId[0];
     let fileSystemId = await this.findNasFileSystem(regionId, nasName);
 
     if (!fileSystemId) {
@@ -41,7 +42,7 @@ export default class Nas {
       this.logger.debug(`Nas file system already generated, fileSystemId is: ${fileSystemId}`);
     }
 
-    let mountTargetDomain = await this.findMountTarget(regionId, fileSystemId, vpcId, vSwitchId);
+    let mountTargetDomain = await this.findMountTarget(regionId, fileSystemId, vpcId, vswitchId);
 
     if (mountTargetDomain) {
       this.logger.debug(
@@ -50,7 +51,7 @@ export default class Nas {
     } else {
       this.logger.info(this.stdoutFormatter.create('MountTarget', fileSystemId));
 
-      mountTargetDomain = await this.createMountTarget(regionId, fileSystemId, vpcId, vSwitchId);
+      mountTargetDomain = await this.createMountTarget(regionId, fileSystemId, vpcId, vswitchId);
 
       this.logger.debug(
         `Default nas file system mount target has been generated, mount domain is: ${mountTargetDomain}`,
@@ -64,6 +65,7 @@ export default class Nas {
 
   async remove(properties: IProperties) {
     const { regionId, nasName, vpcId, vSwitchId } = properties;
+    const vswitchId = _.isString(vSwitchId) ? vSwitchId : vSwitchId[0];
     let { fileSystemId } = properties;
     if (!nasName || !fileSystemId) {
       this.logger.debug('Not found nasName or fileSystemId,skip remove nas.');
@@ -78,7 +80,7 @@ export default class Nas {
       }
     }
 
-    const mountTargetDomain = await this.findMountTarget(regionId, fileSystemId, vpcId, vSwitchId);
+    const mountTargetDomain = await this.findMountTarget(regionId, fileSystemId, vpcId, vswitchId);
     this.logger.debug(`Found mount target domain is: ${mountTargetDomain}`);
     if (mountTargetDomain) {
       const p = {
