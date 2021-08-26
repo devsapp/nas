@@ -22,7 +22,7 @@ export interface IProperties {
     serviceName: string;
     functionName?: string;
     vpcId: string;
-    vSwitchId: string;
+    vSwitchId: string[] | string;
     securityGroupId: string;
     role: string;
     description?: string;
