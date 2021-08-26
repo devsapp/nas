@@ -24,7 +24,7 @@ export interface IProperties {
   serviceName: string;
   functionName?: string;
   vpcId: string;
-  vSwitchId: string;
+  vSwitchId: string[] | string; // 支持数组和字符串，如果是在创建nas的时候传入的是数组，则使用第一个元素作为挂在点的交换机
   securityGroupId: string;
   role: string;
   description?: string;
