@@ -61,9 +61,10 @@ export default class Ls {
 
     try {
       const rmResponse = await this.fcClient.post(commandsPath(nasHttpTriggerPath), { cmd });
+      this.logger.debug(`command cmd res: ${JSON.stringify(rmResponse)}`);
 
-      this.logger.log(rmResponse.data.stdout);
-      this.logger.log(rmResponse.data.stderr);
+      this.logger.log(rmResponse.data?.stdout);
+      this.logger.log(rmResponse.data?.stderr);
       this.logger.log(`'✔' remove ${fcPath} done`, 'green');
     } catch (ex) {
       if (isRootDir && ex.message.includes("cannot remove '*': No such file or directory")) {

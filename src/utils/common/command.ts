@@ -30,7 +30,9 @@ export default class Command {
     this.logger.debug(`command cmd: ${cmd}, nasHttpTriggerPath: ${nasHttpTriggerPath}`);
 
     const lsResponse = await this.fcClient.post(commandsPath(nasHttpTriggerPath), { cmd });
-    this.logger.log(lsResponse.data.stdout);
-    this.logger.log(lsResponse.data.stderr);
+    this.logger.debug(`command cmd res: ${JSON.stringify(lsResponse)}`);
+
+    this.logger.log(lsResponse?.data?.stdout || '');
+    this.logger.log(lsResponse?.data?.stderr || '');
   }
 }

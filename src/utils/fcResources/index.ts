@@ -40,7 +40,7 @@ export default class Resources {
       vm.fail();
       throw ex;
     }
-    vm.succeed('upload done');
+    vm.stop();
   }
 
   async remove(inputs: IInputs) {

@@ -26,9 +26,10 @@ export default class Ls {
     const nasHttpTriggerPath = getHttpTriggerPath(serviceName, functionName);
     const lsCmd = `ls ${ isAllOpt ? '-a ' : '' }${isLongOpt ? '-l ' : '' }${targetPath}`;
     const lsResponse = await this.fcClient.post(commandsPath(nasHttpTriggerPath), { cmd: lsCmd });
+    this.logger.debug(`command cmd res: ${JSON.stringify(lsResponse)}`);
 
-    this.logger.log(lsResponse.data.stdout);
-    this.logger.log(lsResponse.data.stderr);
+    this.logger.log(lsResponse.data?.stdout);
+    this.logger.log(lsResponse.data?.stderr);
   }
 
   checkLsNasDir(targetPath: string): boolean {
