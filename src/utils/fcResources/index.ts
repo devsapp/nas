@@ -31,16 +31,8 @@ export default class Resources {
   }
 
   async init(inputs: IInputs, mountPointDomain: string) {
-    const vm = spinner('Deploy helper function...');
-    try {
-      await this.deployEnsureNasDirHelperService(inputs, mountPointDomain); // 确保目录辅助函数：确保目录
-
-      await this.deployNasOperationHelperService(inputs, mountPointDomain); // 操作辅助函数：check、cp、ls、command...
-    } catch (ex) {
-      vm.fail();
-      throw ex;
-    }
-    vm.stop();
+    await this.deployEnsureNasDirHelperService(inputs, mountPointDomain); // 确保目录辅助函数：确保目录
+    await this.deployNasOperationHelperService(inputs, mountPointDomain); // 操作辅助函数：check、cp、ls、command...
   }
 
   async remove(inputs: IInputs) {
@@ -52,41 +44,55 @@ export default class Resources {
   }
 
   async deployNasOperationHelperService(inputs: IInputs, mountPointDomain: string) {
-    const nasServiceInputs = await this.transformYamlConfigToFcbaseConfig(
-      _.cloneDeep(inputs.props),
-      mountPointDomain,
-      false,
-    );
-    this.logger.debug('deploy nas service');
+    const vm = spinner('Auxiliary function for deployment operation nas...');
+    try {
+      const nasServiceInputs = await this.transformYamlConfigToFcbaseConfig(
+        _.cloneDeep(inputs.props),
+        mountPointDomain,
+        false,
+      );
+      this.logger.debug('deploy nas service');
 
-    await FC.deploy(this.fcClient, nasServiceInputs);
-    this.logger.debug('Waiting for trigger to be up');
-    await sleep(2500);
+      await FC.deploy(this.fcClient, nasServiceInputs);
+      this.logger.debug('Waiting for trigger to be up');
+      await sleep(2500);
+    } catch (ex) {
+      vm.fail();
+      throw ex;
+    }
+    vm.stop();
   }
 
   async deployEnsureNasDirHelperService(inputs: IInputs, mountPointDomain: string) {
-    const ensureNasDirProps = await this.transformYamlConfigToFcbaseConfig(
-      _.cloneDeep(inputs.props),
-      mountPointDomain,
-      true,
-    );
-    this.logger.debug(`deploy ensure nas dir input: ${ensureNasDirProps}`);
-    await FC.deploy(this.fcClient, ensureNasDirProps);
-    await sleep(500);
+    const vm = spinner('Deploy a helper function to ensure the existence of the nas directory...');
+    try {
+      const ensureNasDirProps = await this.transformYamlConfigToFcbaseConfig(
+        _.cloneDeep(inputs.props),
+        mountPointDomain,
+        true,
+      );
+      this.logger.debug(`deploy ensure nas dir input: ${ensureNasDirProps}`);
+      await FC.deploy(this.fcClient, ensureNasDirProps);
+      await sleep(500);
 
-    const { serviceName, functionName } = ensureNasDirProps.function;
-    const { mountDir, nasDir } = inputs.props;
+      const { serviceName, functionName } = ensureNasDirProps.function;
+      const { mountDir, nasDir } = inputs.props;
 
-    this.logger.debug(
-      `Invoke fc function, service name is: ${serviceName}, function name is: ${
-        functionName
-      }, event is: ${JSON.stringify([nasDir])}`,
-    );
-    await this.invokeFcUtilsFunction(
-      serviceName,
-      functionName,
-      transformNasDirPath(JSON.stringify([path.join(mountDir, nasDir)])),
-    );
+      this.logger.debug(
+        `Invoke fc function, service name is: ${serviceName}, function name is: ${
+          functionName
+        }, event is: ${JSON.stringify([nasDir])}`,
+      );
+      await this.invokeFcUtilsFunction(
+        serviceName,
+        functionName,
+        transformNasDirPath(JSON.stringify([path.join(mountDir, nasDir)])),
+      );
+    } catch (ex) {
+      vm.fail();
+      throw ex;
+    }
+    vm.stop();
   }
 
   async transformYamlConfigToFcbaseConfig(
