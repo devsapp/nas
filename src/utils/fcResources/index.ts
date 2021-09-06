@@ -44,7 +44,7 @@ export default class Resources {
   }
 
   async deployNasOperationHelperService(inputs: IInputs, mountPointDomain: string) {
-    const vm = spinner('Auxiliary function for deployment operation nas...');
+    const vm = spinner('Helper function for deployment operation nas...');
     try {
       const nasServiceInputs = await this.transformYamlConfigToFcbaseConfig(
         _.cloneDeep(inputs.props),
