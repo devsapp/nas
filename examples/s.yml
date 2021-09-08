@@ -19,7 +19,7 @@ services:
       groupId: 10003
       userId: 10003
 
-      mountPointDomain: 28b2c4aa9e-uxn44.cn-shenzhen.nas.aliyuncs.com # 指定配置
+      mountPointDomain: 2be9f484c0-vfu95.cn-shenzhen.nas.aliyuncs.com # 指定配置
       nasDir: test
 
       # nasDir: test

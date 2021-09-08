@@ -387,7 +387,10 @@ export default class NasCompoent extends Base {
       functionName,
     );
     const isCpCommand = ['cp', 'download', 'upload'].includes(command);
-    const { mountDir } = await this.deploy(inputs, isNasServerStale && !isCpCommand);
+    if (isNasServerStale && isCpCommand) {
+      await this.ensureNasDir(_.cloneDeep(inputs));
+    }
+    const { mountDir } = await this.deploy(inputs, isNasServerStale);
     inputs.props.mountDir = mountDir;
 
     return inputs;
