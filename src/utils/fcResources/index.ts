@@ -88,11 +88,11 @@ export default class Resources {
         functionName,
         transformNasDirPath(JSON.stringify([path.join(mountDir, nasDir)])),
       );
+      vm.stop();
     } catch (ex) {
       vm.fail();
-      throw ex;
+      this.logger.error(`${ex.code}: ${ex.message}`);
     }
-    vm.stop();
   }
 
   async transformYamlConfigToFcbaseConfig(

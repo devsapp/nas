@@ -1,4 +1,4 @@
-node_modules
+**/node_modules
 .s
 LICENSE
 package-lock.json
