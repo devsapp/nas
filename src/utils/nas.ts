@@ -67,7 +67,7 @@ export default class Nas {
     const { regionId, nasName, vpcId, vSwitchId } = properties;
     const vswitchId = _.isString(vSwitchId) ? vSwitchId : vSwitchId[0];
     let { fileSystemId } = properties;
-    if (!nasName || !fileSystemId) {
+    if (!(nasName || fileSystemId)) {
       this.logger.debug('Not found nasName or fileSystemId,skip remove nas.');
       return false;
     }

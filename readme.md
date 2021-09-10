@@ -26,6 +26,21 @@
 当 mountPointDomain 时会直接复用，届时 nasName、zoneId、storageType 填写无效；当 mountPointDomain 没有填写，则 nasName、zoneId、storageType 必填
 ------- 
 
+## 调用 remove
+
+### 仅删除辅助函数
+regionId
+serviceName
+functionName
+
+### 删除辅助函数以及 nas
+regionId
+serviceName
+functionName
+nasName 或者 fileSystemId
+vpcId
+vSwitchId
+
 # 其它
 
 组件开发者：项目编译
