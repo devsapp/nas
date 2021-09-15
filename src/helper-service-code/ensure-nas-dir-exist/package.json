@@ -1,0 +1,20 @@
+{
+  "name": "ensure-nas-dir-exist",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "ncc build index.js -m -o dist",
+    "prebuild": "npm i rimraf --node-save && rimraf package-lock.json && rimraf dist && rimraf node_modules && npm i"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs-extra": "^10.0.0",
+    "rimraf": "^3.0.2"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.24.0"
+  }
+}

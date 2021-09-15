@@ -1,14 +1,13 @@
 import FC from '@alicloud/fc2';
 import { ICredentials } from '../interface';
-import { getTimeout } from './utils';
 
-export function fcClient(regionId: string, profile: ICredentials) {
+export default function fcClient(regionId: string, profile: ICredentials) {
   const client = new FC(profile.AccountID, {
     accessKeyID: profile.AccessKeyID,
     accessKeySecret: profile.AccessKeySecret,
     securityToken: profile.SecurityToken,
     region: regionId,
-    timeout: getTimeout(),
+    timeout: parseInt(process.env.NAS_FUNCTION_TIMEOUT) || 600 * 1000,
   });
 
   client.get = async (path, query, headers) => {

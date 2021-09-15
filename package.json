@@ -15,6 +15,7 @@
     "md5-file": "^5.0.0",
     "node-machine-id": "^1.1.12",
     "os-locale": "^5.0.0",
+    "promise-retry": "^2.0.1",
     "rimraf": "^3.0.2",
     "walkdir": "^0.4.1"
   },
@@ -36,7 +37,7 @@
     "prebuild": "rm -rf node_modules && rm -rf package-lock.json && npm i && rimraf dist",
     "build": "npm run fix && npm run lint && ncc build src/index.ts -m -e @serverless-devs/core -o dist",
     "postbuild": "npm run package-zip",
-    "package-zip": "rm -rf ./dist/utils/fcResources/nas-server-*.zip && make -C ./src/utils/fcResources/ensure-nas-dir-exist package && make -C ./src/utils/fcResources/nas-server package",
+    "package-zip": "make -C ./src/helper-service-code/ensure-nas-dir-exist package && make -C ./src/helper-service-code/nas-server package",
     "test": "jest",
     "test:cov": "jest --coverage",
     "lint": "f2elint scan",

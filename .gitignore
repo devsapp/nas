@@ -10,14 +10,12 @@ coverage
 download
 *ui-spec.ts
 *slow-spec.ts
-lib
 .vscode
 .cache
 */test
-*/src
-!fc/src
-!s-zip/src
 package-lock.json
 **/nas-server/dist
-!**/nas-server/lib
 examples/**/.s
+src/helper-service-code/**/dist
+
+srccopy
