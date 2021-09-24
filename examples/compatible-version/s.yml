@@ -10,21 +10,19 @@ services:
       regionId: cn-shenzhen
       # 辅助函数使用
       serviceName: express-2
-      # description: 服务描述
+      description: 服务描述
       # functionName: nas
+      vpcId: vpc-wz91ihi7bnj8wrlsi9jyi
+      securityGroupId: sg-wz9jaz33icbqb64tjohi
+      vSwitchId: vsw-wz9d31gogb6p8mik15ouf
       role: acs:ram::1899690531354629:role/aliyunfcgeneratedrole-cn-hangzhou-test-nas-auto
-      vpcConfig:
-        vpcId: vpc-wz91ihi7bnj8wrlsi9jyi
-        securityGroupId: sg-wz9jaz33icbqb64tjohi
-        vSwitchIds: 
-          - vsw-wz9d31gogb6p8mik15ouf
       # 辅助函数 & 初始化 nas
       groupId: 10003
       userId: 10003
-      mountPoints:
-        - serverAddr: 2be9f484c0-vfu95.cn-shenzhen.nas.aliyuncs.com
-          nasDir: /test
-          fcDir: /mnt/auto
+
+      mountPointDomain: 2be9f484c0-vfu95.cn-shenzhen.nas.aliyuncs.com # 指定配置
+      nasDir: test/test/test/test/test
+      fcDir: /mnt/auto
 
       # nasDir: test
       # nasName: default_nas_created_by_fc_fun

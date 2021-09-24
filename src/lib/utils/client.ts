@@ -1,13 +1,18 @@
 import FC from '@alicloud/fc2';
-import { ICredentials } from '../interface';
+import Pop from '@alicloud/pop-core';
+import { ICredentials } from '../../interface';
 
-export default function fcClient(regionId: string, profile: ICredentials) {
+const timeout = 600 * 1000;
+
+export default fcClient;
+
+export function fcClient(regionId: string, profile: ICredentials) {
   const client = new FC(profile.AccountID, {
     accessKeyID: profile.AccessKeyID,
     accessKeySecret: profile.AccessKeySecret,
     securityToken: profile.SecurityToken,
     region: regionId,
-    timeout: parseInt(process.env.NAS_FUNCTION_TIMEOUT) || 600 * 1000,
+    timeout,
   });
 
   client.get = async (path, query, headers) => {
@@ -31,4 +36,16 @@ export default function fcClient(regionId: string, profile: ICredentials) {
   };
 
   return client;
+}
+
+export function nasClient(regionId: string, profile: ICredentials) {
+  return new Pop({
+    endpoint: `http://nas.${regionId}.aliyuncs.com`,
+    apiVersion: '2017-06-26',
+    accessKeyId: profile.AccessKeyID,
+    accessKeySecret: profile.AccessKeySecret,
+    // @ts-ignore
+    securityToken: profile.SecurityToken,
+    opts: { timeout },
+  });
 }

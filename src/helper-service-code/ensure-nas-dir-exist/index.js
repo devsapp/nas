@@ -1,22 +1,19 @@
 const fs = require('fs-extra');
 
 module.exports.handler = function (event, _context, callback) {
-  const {
-    dirs,
-    getVersion,
-  } = JSON.parse(event);
-
-  console.log('dirs:: ', dirs);
-  console.log('getVersion:: ', getVersion);
-
-  if (getVersion) {
-    const version = fs.readFileSync('./VERSION');
-    callback(null, version.toString());
-  } else if (dirs) {
-    for (const dir of dirs) {
-      fs.mkdirpSync(dir);
-    }
-    callback(null, 'OK');
+  const dirs = JSON.parse(event);
+  if (!Array.isArray(dirs)) {
+    callback('Parameter is not an array', '');
   }
-  callback('Not found invoke function', '');
+
+  dirs.forEach((dir, index) => {
+    console.log('Subscript: ', index);
+    console.log('value: ', dir);
+
+    if (typeof dir !== 'string') {
+      callback(`The subscript ${index} of the parameter is not the same string`, '');
+    }
+    fs.mkdirpSync(dir);
+  });
+  callback(null, 'OK');
 };

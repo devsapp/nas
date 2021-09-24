@@ -7,7 +7,9 @@ module.exports = {
   },
   rules: {
     'no-await-in-loop': 'off',
+    'no-param-reassign': 'off',
     'max-len': 'off',
+    'no-bitwise': 'off',
     '@typescript-eslint/ban-ts-comment': 'off'
   },
 };
