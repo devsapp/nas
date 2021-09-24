@@ -1,9 +1,0 @@
-export declare const getHttpTriggerPath: (serviceName: string, functionName: string) => string;
-export declare const commandsPath: (httpTriggerPath: string) => string;
-export declare const fileChunkUpload: (httpTriggerPath: string) => string;
-export declare const fileCheck: (httpTriggerPath: string) => string;
-export declare const cleanPath: (httpTriggerPath: string) => string;
-export declare const statsPath: (httpTriggerPath: string) => string;
-export declare const pathExsit: (httpTriggerPath: string) => string;
-export declare const downloadPath: (httpTriggerPath: string) => string;
-export declare const versionPath: (httpTriggerPath: string) => string;
