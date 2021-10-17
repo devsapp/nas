@@ -94,7 +94,7 @@ export default class Upload extends CommandBase {
   ) {
     const outputFileName = `${path.basename(path.resolve(localResolvedSrc))}.zip`;
     const outputFilePath = path.join(process.cwd(), '.s', 'zip');
-    const excludes = [path.relative(process.cwd(), path.join(process.cwd(), '.s')), '.DS_Store'];
+    const excludes = ['.DS_Store'];
     await zip({
       codeUri: localResolvedSrc,
       outputFileName,
