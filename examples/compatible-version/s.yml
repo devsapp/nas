@@ -1,0 +1,30 @@
+edition: 1.0.0          #  命令行YAML规范版本，遵循语义化版本（Semantic Versioning）规范
+name: nasApp            #  项目名称
+access: default  #  秘钥别名
+
+services:
+  nas-test: #  服务名称
+    component: ${path(..)}  # 组件名称
+    # component: devsapp/nas  # 组件名称
+    props: #  组件的属性值
+      regionId: cn-shenzhen
+      # 辅助函数使用
+      serviceName: express-2
+      description: 服务描述
+      # functionName: nas
+      vpcId: vpc-wz91ihi7bnj8wrlsi9jyi
+      securityGroupId: sg-wz9jaz33icbqb64tjohi
+      vSwitchId: vsw-wz9d31gogb6p8mik15ouf
+      role: acs:ram::1899690531354629:role/aliyunfcgeneratedrole-cn-hangzhou-test-nas-auto
+      # 辅助函数 & 初始化 nas
+      groupId: 10003
+      userId: 10003
+
+      mountPointDomain: 2be9f484c0-vfu95.cn-shenzhen.nas.aliyuncs.com # 指定配置
+      nasDir: test/test/test/test/test
+      fcDir: /mnt/auto
+
+      # nasDir: test
+      # nasName: default_nas_created_by_fc_fun
+      # zoneId: cn-shenzhen-a
+      # storageType: Performance # Capacity

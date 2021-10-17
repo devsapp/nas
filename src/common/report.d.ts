@@ -1,7 +1,8 @@
 declare namespace ServerlessDevsReport {
   export interface Nas {
     region: string;
-    mountPointDomain: string;
+    mountPointDomain?: string;
+    mountPointDomains?: string[];
     fileSystemId: string;
   }
   export interface ReportData {
