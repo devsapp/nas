@@ -18,4 +18,4 @@ release-dev: push
 	-gh release delete dev -y
 	-git tag -d dev
 	-git push origin :refs/tags/dev
-	gh release create dev --notes "dev release" --target dev --title "Release dev"
+	gh release create dev --notes "dev release" --target refactor --title "Release dev"

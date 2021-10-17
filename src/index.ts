@@ -1,402 +1,258 @@
-/* eslint-disable require-atomic-updates */
-import {
-  HLogger,
-  ILogger,
-  help,
-  commandParse,
-  reportComponent,
-} from '@serverless-devs/core';
-import FC from './utils/fcResources/fc';
+import * as core from '@serverless-devs/core';
 import _ from 'lodash';
-import * as constant from './constant';
-import { IInputs, IProperties, ICommandParse } from './interface';
-import StdoutFormatter from './stdout-formatter';
-import Nas from './utils/nas';
-import Common from './utils/common';
-import Version from './utils/version';
-import FcResources from './utils/fcResources';
-import { getMountDir, nasUriHandler, getCredential } from './utils/utils';
-import { parseNasUri } from './utils/common/utils';
+import logger from './common/logger';
 import Base from './common/base';
+import {
+  IInputs,
+  RemoveInputs,
+  CommandInputs,
+  EnsureNasDirHelperServiceInputs,
+  RemoveHelperServiceInputs,
+  DeployInputs,
+} from './interface';
+import EnsureNasDirInitHelperService from './lib/ensure-nas-dir-helper-service';
+import NasOperationInitHelperService from './lib/nas-operation-helper-service';
+import ParameterAdaptation from './lib/utils/parameter-adaptation';
+import { getCredential, makeSureNasUriStartWithSlash } from './lib/utils/utils';
+import { checkInputs } from './lib/command/utils';
+import Command from './lib/command/command';
+import Download from './lib/command/download';
+import Upload from './lib/command/upload';
+import Nas from './lib/nas';
+import * as help from './lib/help';
 
+const APTS = { boolean: ['help', 'y'], alias: { help: 'h', 'assume-yes': 'y' } };
 export default class NasCompoent extends Base {
-  @HLogger(constant.CONTEXT) logger: ILogger;
-
-  async deploy(inputs: IInputs, isNasServerStale: boolean) {
-    this.logger.debug(`input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
-    const apts = { boolean: ['help'], alias: { help: 'h' } };
-    const commandData: any = commandParse({ args: inputs.args }, apts);
-    this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
+  /**
+   * 创建 nas 资源，并创建辅助函数
+   * @param inputs props 参数参考 IDeployProps
+   */
+  async deploy(inputs: DeployInputs) {
+    // @ts-ignore 兼容 0.0.* 的版本
+    inputs.props = ParameterAdaptation.adapta01(inputs.props);
+    logger.debug(`new input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
+    const commandData: any = core.commandParse(inputs, APTS);
+    logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
     if (commandData.data?.help) {
-      help(constant.DEPLOY_HELP);
+      core.help(help.DEPLOY_HELP);
       return;
     }
-    await this.initFormatter();
+    Nas.checkDeployProps(inputs.props);
+    const credentials = await getCredential(inputs.credentials, inputs);
 
-    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
-    if (!isNasServerStale) {
-      this.reportComponent('deploy', credentials.AccountID);
+    const inputsCopy = _.cloneDeep(inputs);
+    const { access } = inputsCopy.project || {};
+    const { regionId, mountPoints, serviceName, nasDir } = inputsCopy.props;
+    this.reportComponent('deploy', credentials.AccountID);
+
+    if (_.isEmpty(mountPoints)) {
+      const nas = new Nas(regionId, credentials, commandData.data?.y);
+      const { mountPointDomain, fileSystemId } = await nas.init(inputsCopy.props);
+
+      const reportContent = { region: regionId, mountPointDomain, fileSystemId };
+      super.__report({ access, name: 'nas', content: reportContent });
+
+      inputsCopy.props.mountPoints = [{
+        serverAddr: mountPointDomain,
+        nasDir: makeSureNasUriStartWithSlash(nasDir || serviceName),
+        fcDir: '/mnt/auto',
+      }];
     }
 
-    const properties: IProperties = _.cloneDeep(inputs.props);
-    this.logger.debug(`Properties values: ${JSON.stringify(properties)}.`);
+    await this.initHelperService(inputsCopy);
 
-    let mountPointDomain: string;
-    let fileSystemId = '';
-    if (properties.mountPointDomain) {
-      mountPointDomain = properties.mountPointDomain;
-      this.logger.debug('Specify parameters, reuse configuration.');
-    } else {
-      const nas = new Nas(properties.regionId, credentials);
-      const nasInitResponse = await nas.init(properties);
-      this.logger.debug(`Nas init response is: ${JSON.stringify(nasInitResponse)}`);
-
-      mountPointDomain = nasInitResponse.mountTargetDomain;
-      fileSystemId = nasInitResponse.fileSystemId;
-      super.__report({
-        name: 'nas',
-        access: inputs.project?.access,
-        content: {
-          region: properties.regionId,
-          mountPointDomain,
-          fileSystemId,
-        },
-      });
-    }
-    this.logger.debug(`Create nas success, mountPointDomain: ${mountPointDomain}`);
-
-    const mountDir = getMountDir(mountPointDomain, inputs.props.nasDir);
-    inputs.props.nasDir = nasUriHandler(inputs.props.nasDir);
-
-    this.logger.debug(`Whether to open the service configuration: ${!isNasServerStale}`);
-    inputs.props.mountDir = mountDir;
-    const fc = new FcResources(properties.regionId, credentials);
-    if (!isNasServerStale) {
-      await fc.init(inputs, mountPointDomain);
-    } else {
-      const { service } = await fc.transformYamlConfigToFcbaseConfig(
-        _.cloneDeep(inputs.props),
-        mountPointDomain,
-        false,
-      );
-      await FC.makeService(fc.fcClient, service);
-    }
-
-    return { mountPointDomain, fileSystemId, mountDir };
+    return {
+      mountPoints: inputsCopy.props.mountPoints,
+    };
   }
 
   /**
-   * 初始化辅助函数，并且确保目录存在
-   * @param inputs 参数对标 deploy
-   */
-  async initHelperService(inputs: IInputs) {
-    this.logger.debug(`input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
-    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
-    const { regionId, mountPointDomain, nasDir } = inputs.props || {};
-    if (!regionId) {
-      throw new Error('Parameter is missing regionId');
-    }
-    if (!mountPointDomain) {
-      throw new Error('Parameter is missing mountPointDomain');
-    }
-    if (!nasDir) {
-      throw new Error('Parameter is missing nasDir');
-    }
-    inputs.props.mountDir = getMountDir(mountPointDomain, nasDir);
-    const fc = new FcResources(inputs.props.regionId, credentials);
-    await fc.init(inputs, inputs.props.mountPointDomain);
-  }
-
-  /**
-   * 删除辅助函数
+   * 删除 nas 资源，并删除辅助函数
    * @param inputs .
    */
-  async removeHelperService(inputs: IInputs) {
-    this.logger.debug(`input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
-    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
-    const { regionId } = inputs.props || {};
-    if (!regionId) {
+  async remove(inputs: RemoveInputs) {
+    logger.debug(`new input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
+    const commandData: any = core.commandParse(inputs, APTS);
+    const { regionId, serviceName } = inputs.props;
+    if (_.isEmpty(regionId)) {
       throw new Error('Parameter is missing regionId');
     }
-    const fc = new FcResources(inputs.props.regionId, credentials);
-    await fc.remove(inputs);
-  }
 
-  /**
-   * 确保目录存在
-   * @param inputs 参数对标 deploy
-   */
-  async ensureNasDir(inputs: IInputs) {
-    this.logger.debug(`input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
-    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
-    if (!inputs.props?.regionId) {
-      throw new Error('Parameter is missing regionId');
-    }
-    if (!inputs.props?.mountPointDomain) {
-      throw new Error('Parameter is missing mountPointDomain');
-    }
-    if (!inputs.props?.mountDir) {
-      inputs.props.mountDir = '/mnt/auto';
-    }
-    const fc = new FcResources(inputs.props.regionId, credentials);
-    await fc.deployEnsureNasDirHelperService(inputs, inputs.props.mountPointDomain);
-  }
-
-  /**
-   * 删除确保目录存在的辅助函数
-   * @param inputs 参数对标 deploy
-   */
-  async removeEnsureNasDirHelperService(inputs: IInputs) {
-    this.logger.debug(`input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
-    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
-    if (!inputs.props?.regionId) {
-      throw new Error('Parameter is missing regionId');
-    }
-    const fc = new FcResources(inputs.props.regionId, credentials);
-    const nasServiceProps = await fc.transformYamlConfigToFcbaseConfig(inputs.props, '', true);
-    await FC.remove(fc.fcClient, nasServiceProps);
-  }
-
-  async remove(inputs: IInputs) {
-    this.logger.debug(`input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
-    const apts = { boolean: ['help'], alias: { help: 'h' } };
-    const commandData: any = commandParse({ args: inputs.args }, apts);
-    this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
-    if (commandData.data?.help) {
-      help(constant.REOMVE_HELP);
-      return;
-    }
-    await this.initFormatter();
-
-    const { regionId } = inputs.props;
-    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
+    const credentials = await getCredential(inputs.credentials, inputs);
     this.reportComponent('remove', credentials.AccountID);
 
-    const fc = new FcResources(regionId, credentials);
-    await fc.remove(inputs);
+    if (!_.isEmpty(serviceName)) {
+      // @ts-ignore . 如果 serviceName 存在，则删除辅助函数
+      await this.removeHelperService(inputs);
+    }
 
-    const nas = new Nas(regionId, credentials);
-    const fileSystemId = await nas.remove(inputs.props);
+    const nas = new Nas(regionId, credentials, commandData.data?.y);
+    const { fileSystemId, mountPointDomains } = await nas.remove(inputs.props);
+
     if (fileSystemId) {
       super.__report({
         name: 'nas',
         access: inputs.project?.access,
         content: {
           region: regionId,
-          mountPointDomain: '',
+          mountPointDomains,
           fileSystemId: '',
         },
       });
     }
   }
 
-  async ls(inputs: IInputs) {
-    const apts = { boolean: ['all', 'long', 'help'], alias: { help: 'h', all: 'a', long: 'l' } };
-    const { data: commandData = {} }: ICommandParse = commandParse({ args: inputs.args }, apts);
-    this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
-
-    if (commandData.help) {
-      help(constant.LSHELP);
-      return;
-    }
-    await this.initFormatter();
-
-    inputs = await this.handlerInputs(inputs, 'ls');
-
-    const {
-      regionId,
-      serviceName,
-      functionName = constant.FUNNAME,
-      nasDir: nasDirYmlInput,
-      mountDir,
-    } = inputs.props;
-    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
-
-    const common = new Common.Ls(regionId, credentials);
-
-    const argv_paras = commandData._ || [];
-    const nasDirCommonInput: string = argv_paras[0];
-    if (!common.checkLsNasDir(nasDirCommonInput)) {
-      help(constant.LSHELP);
-      return;
+  /**
+   * 调用 fc 的内置指令
+  */
+  async command(inputs: CommandInputs) {
+    // @ts-ignore 兼容 0.0.* 的版本
+    inputs.props = ParameterAdaptation.adapta01(inputs.props);
+    const { props, args } = inputs;
+    logger.debug(`new input.props: ${JSON.stringify(props)}, inputs.args: ${args}`);
+    const commandData: any = core.commandParse(inputs, APTS);
+    logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
+    if (commandData.data?.help) {
+      return core.help();
     }
 
-    const isAllOpt: boolean = commandData.all;
-    const isLongOpt: boolean = commandData.long;
+    checkInputs(props);
+    const credentials = await getCredential(inputs.credentials, inputs);
+    this.reportComponent('command', credentials.AccountID);
 
-    await common.ls({
-      targetPath: parseNasUri(nasDirCommonInput, mountDir, nasDirYmlInput),
-      isAllOpt,
-      isLongOpt,
-      serviceName,
-      functionName,
-    });
+    const nasOperationInitHelperService = new NasOperationInitHelperService(credentials, inputs.props?.regionId);
+    await nasOperationInitHelperService.init(inputs);
+
+    const command = new Command(credentials, props.regionId);
+    await command.command(props.serviceName, args);
   }
 
-  async rm(inputs: IInputs) {
+  /**
+   * 下载文件到本地
+  */
+  async download(inputs: IInputs) {
+    logger.debug('start');
+    // @ts-ignore 兼容 0.0.* 的版本
+    inputs.props = ParameterAdaptation.adapta01(inputs.props);
+    const { props, args } = inputs;
+    logger.debug(`new input.props: ${JSON.stringify(props)}, inputs.args: ${args}`);
+
     const apts = {
-      boolean: ['recursive', 'force', 'help'],
-      alias: { recursive: 'r', force: 'f', help: 'h' },
+      boolean: ['help', 'no-clobber', 'no-unzip'],
+      alias: { 'no-clobber': 'n', help: 'h' },
     };
-    const { data: commandData = {} }: ICommandParse = commandParse({ args: inputs.args }, apts);
-    this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
-
-    const argv_paras = commandData._ || [];
-
-    if (commandData.help || !argv_paras[0]) {
-      help(constant.RMHELP);
-      return;
-    }
-    await this.initFormatter();
-
-    inputs = await this.handlerInputs(inputs, 'rm');
-
-    const {
-      regionId,
-      serviceName,
-      functionName = constant.FUNNAME,
-      nasDir: nasDirYmlInput,
-      mountDir,
-    } = inputs.props;
-
-    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
-    const common = new Common.Rm(regionId, credentials);
-
-    const targetPath = parseNasUri(argv_paras[0], mountDir, nasDirYmlInput);
-    const isRootDir = `${mountDir}/.` === targetPath || `${mountDir}/` === targetPath;
-    if (isRootDir) {
-      this.logger.debug(`Rm root dir, mountDir is ${mountDir}, targetPath is ${targetPath}`);
+    const commandData: any = core.commandParse(inputs, apts);
+    logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
+    if (commandData.data?.help) {
+      return core.help();
     }
 
-    await common.rm({
-      serviceName,
-      functionName,
-      isRootDir,
-      targetPath: isRootDir ? mountDir : targetPath,
-      recursive: commandData.recursive,
-      force: commandData.force,
-    });
+    checkInputs(props);
+    const { 'no-unzip': noUnzip, 'no-clobber': noClobber } = commandData.data || {};
+    const [fcDir, localDir] = commandData.data?._ || [];
+    const credentials = await getCredential(inputs.credentials, inputs);
+    this.reportComponent('command', credentials.AccountID);
+    await this.initHelperService(inputs);
+    const download = new Download(credentials, props.regionId);
+    await download.cpFromNasToLocal(props, { localDir, fcDir, noUnzip, noClobber });
   }
 
-  async cp(inputs: IInputs, command = 'cp') {
+  /**
+   * 上传文件到 nas
+  */
+  async upload(inputs: IInputs) {
+    logger.debug('start');
+    // @ts-ignore 兼容 0.0.* 的版本
+    inputs.props = ParameterAdaptation.adapta01(inputs.props);
+    const { props, args } = inputs;
+    logger.debug(`new input.props: ${JSON.stringify(props)}, inputs.args: ${args}`);
+
     const apts = {
       boolean: ['recursive', 'help', 'no-clobber'],
       alias: { recursive: 'r', 'no-clobber': 'n', help: 'h' },
     };
-    const { data: commandData = {} }: ICommandParse = commandParse({ args: inputs.args }, apts);
-    this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
-
-    const argv_paras = commandData._ || [];
-    if (commandData.help || argv_paras.length !== 2) {
-      help(constant[`${command.toLocaleUpperCase()}HELP`]);
-      return;
-    }
-    await this.initFormatter();
-
-    inputs = await this.handlerInputs(inputs, command);
-
-    const {
-      regionId,
-      serviceName,
-      functionName = constant.FUNNAME,
-      nasDir: nasDirYmlInput,
-      excludes,
-      mountDir,
-    } = inputs.props;
-
-    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
-
-    const common = new Common.Cp(regionId, credentials);
-    await common.cp({
-      srcPath: argv_paras[0],
-      targetPath: argv_paras[1],
-      recursive: commandData.r,
-      noClobber: commandData.n,
-      serviceName,
-      functionName,
-      noTargetDirectory: true,
-      mountDir,
-      nasDirYmlInput,
-      excludes,
-      command,
-    });
-  }
-
-  async upload(inputs: IInputs) {
-    return await this.cp(inputs, 'upload');
-  }
-
-  async download(inputs: IInputs) {
-    return await this.cp(inputs, 'download');
-  }
-
-  async command(inputs: IInputs) {
-    const commandData: any = commandParse({ args: inputs.args }, { boolean: ['help'], alias: { help: 'h' } });
-    this.logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
+    const commandData: any = core.commandParse(inputs, apts);
+    logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
     if (commandData.data?.help) {
-      help(constant.COMMANDHELP);
-      return;
+      return core.help();
     }
-    await this.initFormatter();
 
-    const args = inputs.args.replace('--debug', '').trim();
-    inputs = await this.handlerInputs(inputs, 'command');
+    checkInputs(props);
+    const { recursive, 'no-clobber': noClobber } = commandData.data || {};
+    const [localDir, fcDir] = commandData.data?._ || [];
+    const credentials = await getCredential(inputs.credentials, inputs);
+    this.reportComponent('command', credentials.AccountID);
+    await this.initHelperService(inputs);
 
-    const {
-      regionId,
-      nasDir,
-      mountDir,
-      serviceName,
-      functionName = constant.FUNNAME,
-    } = inputs.props;
+    const upload = new Upload(credentials, props.regionId);
+    await upload.cpFromLocalToNas(props, { localDir, fcDir, recursive, noClobber });
+  }
 
-    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
+  /**
+   * 初始化辅助函数，并且确保目录存在
+   * @param inputs props 参数参考 HelperServiceProps
+   */
+  async initHelperService(inputs: IInputs) {
+    // @ts-ignore 兼容 0.0.* 的版本
+    inputs.props = ParameterAdaptation.adapta01(inputs.props);
+    logger.debug(`new input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
+    const credentials = await getCredential(inputs.credentials, inputs);
 
-    const common = new Common.Command(regionId, credentials);
+    const ensureNasDirInitHelperService = new EnsureNasDirInitHelperService(credentials, inputs.props?.regionId);
+    await ensureNasDirInitHelperService.init(inputs);
 
-    await common.command({
-      serviceName,
-      functionName,
-      args,
-      mountDir,
-      nasDir,
-    });
+    const nasOperationInitHelperService = new NasOperationInitHelperService(credentials, inputs.props?.regionId);
+    await nasOperationInitHelperService.init(inputs);
+  }
+
+  /**
+   * 创建确保 nas 目录存在的辅助函数，并确保目录存在
+   * @param inputs .
+   */
+  async ensureNasDir(inputs: EnsureNasDirHelperServiceInputs) {
+    // @ts-ignore 兼容 0.0.* 的版本
+    inputs.props = ParameterAdaptation.adapta01(inputs.props);
+    logger.debug(`new input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
+    const credentials = await getCredential(inputs.credentials, inputs);
+
+    const ensureNasDirInitHelperService = new EnsureNasDirInitHelperService(credentials, inputs.props?.regionId);
+    await ensureNasDirInitHelperService.init(inputs);
+  }
+
+  /**
+   * 删除辅助函数
+   * @param inputs .
+   */
+  async removeHelperService(inputs: RemoveHelperServiceInputs) {
+    logger.debug(`new input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
+    await this.removeEnsureNasDirHelperService(inputs);
+
+    const credentials = await getCredential(inputs.credentials, inputs);
+    try {
+      const nasOperationInitHelperService = new NasOperationInitHelperService(credentials, inputs.props?.regionId);
+      await nasOperationInitHelperService.remove(inputs);
+    } catch (ex) {
+      logger.debug(`remove nasOperationInitHelperService error: ${ex.code}, ${ex.message}`);
+    }
+  }
+
+  /**
+   * 删除确保 nas 目录存在的辅助函数
+   * @param inputs .
+   */
+  async removeEnsureNasDirHelperService(inputs: RemoveHelperServiceInputs) {
+    logger.debug(`new input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
+    const credentials = await getCredential(inputs.credentials, inputs);
+    try {
+      const ensureNasDirInitHelperService = new EnsureNasDirInitHelperService(credentials, inputs.props?.regionId);
+      await ensureNasDirInitHelperService.remove(inputs);
+    } catch (ex) {
+      logger.debug(`remove ensureNasDirInitHelperService error: ${ex.code}, ${ex.message}`);
+    }
   }
 
   private reportComponent(command: string, uid: string) {
-    reportComponent(constant.CONTEXT_NAME, { uid, command });
-  }
-
-  private async handlerInputs(inputs, command?: string) {
-    this.logger.debug(`input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
-    const credentials = await getCredential(inputs.project?.access, inputs.credentials);
-    if (command) {
-      this.reportComponent(command, credentials.AccountID);
-    }
-
-    const {
-      regionId,
-      serviceName,
-      functionName = constant.FUNNAME,
-    } = inputs.props;
-
-    const isNasServerStale = await Version.isNasServerStale(
-      credentials,
-      regionId,
-      serviceName,
-      functionName,
-    );
-    const isCpCommand = ['cp', 'download', 'upload'].includes(command);
-    if (isNasServerStale && isCpCommand) {
-      await this.ensureNasDir(_.cloneDeep(inputs));
-    }
-    const { mountDir } = await this.deploy(inputs, isNasServerStale);
-    inputs.props.mountDir = mountDir;
-
-    return inputs;
-  }
-
-  private async initFormatter() {
-    await StdoutFormatter.initStdout();
+    core.reportComponent('fc-nas', { uid, command });
   }
 }
+
