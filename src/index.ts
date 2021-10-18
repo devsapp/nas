@@ -13,7 +13,7 @@ import {
 import EnsureNasDirInitHelperService from './lib/ensure-nas-dir-helper-service';
 import NasOperationInitHelperService from './lib/nas-operation-helper-service';
 import ParameterAdaptation from './lib/utils/parameter-adaptation';
-import { getCredential, makeSureNasUriStartWithSlash } from './lib/utils/utils';
+import { getCredential, makeSureNasUriStartWithSlash, argReplace } from './lib/utils/utils';
 import { checkInputs } from './lib/command/utils';
 import Command from './lib/command/command';
 import Download from './lib/command/download';
@@ -154,7 +154,7 @@ export default class NasCompoent extends Base {
     this.reportComponent('command', credentials.AccountID);
     await this.initHelperService(inputs);
     const download = new Download(credentials, props.regionId);
-    await download.cpFromNasToLocal(props, { localDir, fcDir, noUnzip, noClobber });
+    await download.cpFromNasToLocal(props, { localDir, fcDir: argReplace(fcDir), noUnzip, noClobber });
   }
 
   /**
@@ -185,7 +185,7 @@ export default class NasCompoent extends Base {
     await this.initHelperService(inputs);
 
     const upload = new Upload(credentials, props.regionId);
-    await upload.cpFromLocalToNas(props, { localDir, fcDir, recursive, noClobber });
+    await upload.cpFromLocalToNas(props, { localDir, fcDir: argReplace(fcDir), recursive, noClobber });
   }
 
   /**

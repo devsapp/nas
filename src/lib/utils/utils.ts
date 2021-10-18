@@ -78,3 +78,7 @@ export async function getFileStat(dirPath: string) {
     return false;
   }
 }
+
+export function argReplace(fcDir) {
+  return fcDir.replace(/nas:\/\//g, '');
+}
