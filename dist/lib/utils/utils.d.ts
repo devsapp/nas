@@ -9,3 +9,4 @@ export declare function convertWin32PathToLinux(uri: string): string;
 export declare function promptForConfirmContinue(message: string): Promise<boolean>;
 export declare function resolveLocalPath(localPath: string): string;
 export declare function getFileStat(dirPath: string): Promise<false | fs.Stats>;
+export declare function argReplace(fcDir: any): any;
