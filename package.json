@@ -1,6 +1,6 @@
 {
   "name": "nas",
-  "version": "0.0.32",
+  "version": "0.1.1",
   "main": "./dist/index.js",
   "autoInstall": false,
   "dependencies": {
