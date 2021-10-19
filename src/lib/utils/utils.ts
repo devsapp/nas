@@ -12,7 +12,7 @@ export async function getCredential(credentials, inputs) {
   if (!_.isEmpty(credentials)) {
     return credentials;
   }
-  return await core.getCredential(inputs);
+  return await core.getCredential(inputs, inputs?.project?.access);
 }
 
 // 只能判断非根目录的路径
