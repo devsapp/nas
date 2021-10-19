@@ -18,7 +18,7 @@ clean:
 
 build: clean install
 	env -i PATH="$(PATH)" npm run build
-	mkdir -p ./dist/bin && cp -rf ./bin/ ./dist/bin
+	mkdir -p ./dist/ && cp -rf ./bin/ ./dist/bin
 	git log -n 1 --pretty="format:%h" > ./dist/VERSION
 
 package: build
