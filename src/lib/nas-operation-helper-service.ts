@@ -66,6 +66,7 @@ export default class NasOperationInitHelperService extends FcDeploy {
         handler: 'index.handler',
         timeout: 600,
         memorySize: NAS_HELPER_SERVERVICE_MEMORY_SIZE,
+        instanceType: NAS_HELPER_SERVERVICE_MEMORY_SIZE >= 4096 ? 'c1' : 'e1',
         codeUri: ENSURENASDIREXISTFILENAME,
         runtime: 'nodejs12',
         environmentVariables: {
@@ -100,12 +101,21 @@ export default class NasOperationInitHelperService extends FcDeploy {
       nasConfig,
     } = deployInputs.props.service;
 
-    const isNewVersion = await super.versionOrConfigNoChange(serviceName, version, vpcConfig, nasConfig);
-
-    if (!isNewVersion) {
-      await super.deploy(deployInputs);
-      sleep(1500);
+    // 如果存在有效的环境内存变量，则重新部署配置
+    if (parseInt(process.env.NAS_HELPER_SERVERVICE_MEMORY_SIZE || '0', 10) >= 128) {
+      logger.log(`You have set the environment variable NAS_HELPER_SERVERVICE_MEMORY_SIZE=${NAS_HELPER_SERVERVICE_MEMORY_SIZE}, and you will be forced to update the nas operation function for you`);
+      return await this.redeploy(deployInputs);
     }
+
+    // 版本和配置不是最新的，则重新部署配置
+    if (!(await super.versionOrConfigNoChange(serviceName, version, vpcConfig, nasConfig))) {
+      await this.redeploy(deployInputs);
+    }
+  }
+
+  async redeploy(deployInputs) {
+    await super.deploy(deployInputs);
+    sleep(1500);
   }
 
   async remove(inputs: RemoveHelperServiceInputs) {

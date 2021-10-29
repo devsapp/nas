@@ -47,7 +47,7 @@ export default class FcDeploy {
 
       // 检测版本是否有变化
       if (!data?.description.includes(`VERSION: ${version}`)) {
-        logger.debug(`new version is ${version}, old version description ${data?.description}`);
+        logger.log(`new version is ${version}, old version is ${data?.description.split('VERSION:')[1]}`);
         return false;
       }
 
@@ -55,11 +55,15 @@ export default class FcDeploy {
       delete data.vpcConfig?.role;
       // @ts-ignore .
       delete vpcConfig?.role;
+      // @ts-ignore .
+      delete vpcConfig?.vswitchIds;
       const nasConfigCopy: any = _.cloneDeep(nasConfig);
       nasConfigCopy.mountPoints = nasConfig.mountPoints.map(({ serverAddr, fcDir, nasDir }) => ({
         serverAddr: `${serverAddr}:${makeSureNasUriStartWithSlash(nasDir)}`,
         mountDir: fcDir,
       }));
+      logger.debug(`data.vpcConfig, vpcConfig:: ${JSON.stringify(data.vpcConfig)} ${JSON.stringify(vpcConfig)}`);
+      logger.debug(`data.nasConfig, nasConfig:: ${JSON.stringify(data.nasConfig)} ${JSON.stringify(nasConfigCopy)}`);
       return _.isEqual(data.vpcConfig, vpcConfig) && _.isEqual(data.nasConfig, nasConfigCopy);
     } catch (ex) {
       logger.debug(`get service error: ${ex?.code}, ${ex?.message}`);
