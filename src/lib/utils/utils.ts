@@ -4,7 +4,6 @@ import inquirer from 'inquirer';
 import _ from 'lodash';
 import fs from 'fs-extra';
 import path from 'path';
-import logger from '../../common/logger';
 
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -70,15 +69,14 @@ export function resolveLocalPath(localPath: string): string {
   return path.join(currentDir, localPath);
 }
 
-export async function getFileStat(dirPath: string) {
-  try {
-    return await fs.stat(dirPath);
-  } catch (ex) {
-    logger.debug(`getFileStat ${dirPath}: ${ex.code}, ${ex.message}`);
-    return false;
-  }
-}
-
 export function argReplace(fcDir) {
   return fcDir.replace(/nas:\/\//g, '');
+}
+
+export function getConfigDirname(configPath: string) {
+  if (configPath) {
+    return path.dirname(configPath);
+  }
+
+  return process.cwd();
 }

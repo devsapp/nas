@@ -52,8 +52,8 @@ export default class CommandBase {
     return await this.fcClient.get(urlPath, query);
   }
 
-  async callDownload(serviceName: string, tmpNasZipPath: string) {
+  async callDownload(serviceName: string, tmpNasZipPath: string, start: number, size: number) {
     const urlPath = `/proxy/${getServiceName(serviceName)}/${NAS_OPERATION_HELPER_FUNCTION_NAME}/download`;
-    return await this.fcClient.post(urlPath, { tmpNasZipPath }, {}, {}, { rawBuf: true });
+    return await this.fcClient.post(urlPath, { tmpNasZipPath, start, size }, {}, {}, { rawBuf: true });
   }
 }

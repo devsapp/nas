@@ -13,7 +13,7 @@ import {
 import EnsureNasDirInitHelperService from './lib/ensure-nas-dir-helper-service';
 import NasOperationInitHelperService from './lib/nas-operation-helper-service';
 import ParameterAdaptation from './lib/utils/parameter-adaptation';
-import { getCredential, makeSureNasUriStartWithSlash, argReplace } from './lib/utils/utils';
+import { getCredential, makeSureNasUriStartWithSlash, argReplace, getConfigDirname } from './lib/utils/utils';
 import { checkInputs } from './lib/command/utils';
 import Command from './lib/command/command';
 import Download from './lib/command/download';
@@ -112,7 +112,7 @@ export default class NasCompoent extends Base {
     logger.debug(`new input.props: ${JSON.stringify(props)}, inputs.args: ${args}`);
     const commandData: any = core.commandParse(inputs, APTS);
     logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
-    if (commandData.data?.help) {
+    if (commandData.data?.help && !args?.includes('-lh')) {
       return core.help();
     }
 
@@ -148,13 +148,14 @@ export default class NasCompoent extends Base {
     }
 
     checkInputs(props);
+    const configPath = getConfigDirname(inputs?.path?.configPath);
     const { 'no-unzip': noUnzip, 'no-clobber': noClobber } = commandData.data || {};
     const [fcDir, localDir] = commandData.data?._ || [];
     const credentials = await getCredential(inputs.credentials, inputs);
     this.reportComponent('command', credentials.AccountID);
     await this.initHelperService(inputs);
     const download = new Download(credentials, props.regionId);
-    await download.cpFromNasToLocal(props, { localDir, fcDir: argReplace(fcDir), noUnzip, noClobber });
+    await download.cpFromNasToLocal(props, { localDir, fcDir: argReplace(fcDir), noUnzip, noClobber }, configPath);
   }
 
   /**

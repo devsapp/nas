@@ -1,33 +1,31 @@
 edition: 1.0.0          #  命令行YAML规范版本，遵循语义化版本（Semantic Versioning）规范
 name: nasApp            #  项目名称
-access: default  #  秘钥别名
+access: default-1  #  秘钥别名
 
 services:
   nas-test: #  服务名称
     component: ${path(..)}  # 组件名称
     # component: devsapp/nas  # 组件名称
     props: #  组件的属性值
-      regionId: cn-shenzhen
+      regionId: cn-shanghai
       # 辅助函数使用
-      serviceName: express-2
+      serviceName: test-nas-8g2
       # description: 服务描述
       vpcConfig:
-        vpcId: vpc-wz9m008pvdv81787pkd8z
-        securityGroupId: sg-wz9add4h2zp98fe7ijyl
-        vSwitchIds: 
-          - vsw-wz9jlfu073piyq21lkom5
-
-      # 初始化 nas
-      nasDir: express-2
-      nasName: default_nas_created_by_fc_fun
-      zoneId: cn-shenzhen-a
-      storageType: Performance # Capacity
-
+        vpcId: vpc-uf638ir76pc2cevmfg246
+        securityGroupId: sg-uf6780p0snansz1dvusf
+        vSwitchIds:
+          - vsw-uf6p62lo20onpj48mpg60
       # 操作 nas
-      # groupId: 10003
-      # userId: 10003
-      # mountPoints:
-      #   - serverAddr: 2a14148c4e-wes85.cn-shenzhen.nas.aliyuncs.com
-      #     nasDir: /express-2
-      #     fcDir: /mnt/auto
+      userId: 10003
+      groupId: 10003
+      mountPoints:
+        - serverAddr: 31cf24b1e3-poa11.cn-shanghai.nas.aliyuncs.com
+          nasDir: /test-nas-8g2
+          fcDir: /mnt/auto
+      # 初始化 nas
+      # nasDir: express-2
+      # nasName: default_nas_created_by_fc_fun
+      # zoneId: cn-shenzhen-a
+      # storageType: Performance # Capacity
 
