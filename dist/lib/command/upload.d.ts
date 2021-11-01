@@ -44,14 +44,6 @@ export default class Upload extends CommandBase {
      */
     private uploadFileByChunk;
     /**
-     * 将代码包切片
-     * @param start 计算量的起点
-     * @param end 计算量的终点
-     * @param chunkSize 计算量的步长
-     * @returns { start:, size }[]
-     */
-    private splitRangeBySize;
-    /**
      * 检测上传地址可用性
      */
     private checkUploadDstPath;
