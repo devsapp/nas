@@ -149,7 +149,9 @@ export default class NasCompoent extends Base {
 
     checkInputs(props);
     const configPath = getConfigDirname(inputs?.path?.configPath);
-    const { 'no-unzip': noUnzip, 'no-clobber': noClobber } = commandData.data || {};
+    // --no 开头 commandParse 方法解析不出 true 这种参数
+    const noUnzip = commandData.data?.['no-unzip'] || args?.includes('--no-unzip');
+    const noClobber = commandData.data?.['no-clobber'] || args?.includes('--no-clobber');
     const [fcDir, localDir] = commandData.data?._ || [];
     const credentials = await getCredential(inputs.credentials, inputs);
     this.reportComponent('command', credentials.AccountID);
@@ -179,7 +181,8 @@ export default class NasCompoent extends Base {
     }
 
     checkInputs(props);
-    const { recursive, 'no-clobber': noClobber } = commandData.data || {};
+    const { recursive } = commandData.data || {};
+    const noClobber = commandData.data?.['no-clobber'] || args?.includes('--no-clobber');
     const [localDir, fcDir] = commandData.data?._ || [];
     const credentials = await getCredential(inputs.credentials, inputs);
     this.reportComponent('command', credentials.AccountID);

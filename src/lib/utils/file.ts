@@ -18,7 +18,7 @@ export async function getFileStat(dirPath: string) {
  * @returns { start:, size }[]
  */
 export function splitRangeBySize(start: number, end: number) {
-  // 默认是 5M
+  // 默认是 4M
   const chunkSize = parseInt(process.env.NAS_CHUNK_SIZE || '4', 10) * 1024 * 1024;
 
   const res = [];
