@@ -11,5 +11,5 @@ export default class CommandBase {
     callTmpCheck(serviceName: string, dstPath: string): Promise<any>;
     callClean(serviceName: string, nasZipFile: string): Promise<any>;
     callPathExsit(serviceName: string, targetPath: string): Promise<any>;
-    callDownload(serviceName: string, tmpNasZipPath: string): Promise<any>;
+    callDownload(serviceName: string, tmpNasZipPath: string, start: number, size: number): Promise<any>;
 }
