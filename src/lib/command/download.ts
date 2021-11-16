@@ -1,9 +1,10 @@
 import fs from 'fs-extra';
-import { unzip } from '@serverless-devs/core';
+import { spinner, unzip } from '@serverless-devs/core';
 import path from 'path';
 import CommandBase from './command-base';
 import { ICommandProps } from '../../interface';
 import logger from '../../common/logger';
+import { getFileStat, splitRangeBySize } from '../utils/file';
 
 interface IApts {
   localDir: string;
@@ -13,58 +14,128 @@ interface IApts {
 }
 
 export default class Download extends CommandBase {
-  async cpFromNasToLocal(props: ICommandProps, apts: IApts) {
+  async cpFromNasToLocal(props: ICommandProps, apts: IApts, configPath: string) {
     const { serviceName } = props;
-    const { localDir, fcDir, noUnzip } = apts;
-    await fs.mkdirs(localDir);
+    const { localDir, fcDir, noClobber, noUnzip } = apts;
 
-    logger.debug(`Check nas path ${fcDir} is exsit.`);
-    const { data: checkNasPathExsit } = await super.callPathExsit(serviceName, fcDir);
-    if (!checkNasPathExsit) {
+    logger.info(`Checking remote file ${fcDir} exists`);
+    const { data: stat } = await super.callStats(serviceName, fcDir);
+    logger.debug(`stats::\n${JSON.stringify(stat, null, 2)}`);
+    if (!stat.exists) {
       throw new Error(`${fcDir} is not exsit.`);
     }
-    logger.debug(`Path is exsit: ${checkNasPathExsit}`);
 
-    logger.log(`zipping ${fcDir}`);
+    if (stat.isDir) {
+      return await this.downloadDir(serviceName, fcDir, localDir, configPath, noClobber, noUnzip);
+    }
+
+    const dir = path.dirname(localDir);
+    const fileName = path.basename(localDir);
+    await this.downloadFile(serviceName, stat, dir, fileName, noClobber);
+  }
+
+  /**
+   * 下载文件夹
+   * @param serviceName 服务名称
+   * @param stat 远端文件的信息
+   * @param fcDir 远端文件路径
+   * @param localDir 本地文件路径
+   * @param noClobber 不强制覆盖文件
+   * @param noUnzip 是否解压文件
+   */
+  private async downloadDir(serviceName: string, fcDir: string, localDir: string, configPath: string, noClobber: boolean, noUnzip: boolean) {
+    // 将远端目录压缩成一个压缩包
+    const zipVm = spinner(`zipping ${fcDir}`);
     const tmpNasZipPath = path.posix.join(path.dirname(fcDir), '.fun-nas-generated.zip');
-
     const cmd = `cd ${path.dirname(fcDir)} && rm -rf ${tmpNasZipPath} && zip -r ${tmpNasZipPath} ${path.basename(fcDir)}`;
     logger.debug(`zipping cmd: ${cmd}`);
-    await super.callCommands(serviceName, cmd);
-    logger.log('\'✔\' zip done', 'green');
+    try {
+      await super.callCommands(serviceName, cmd);
+      zipVm.stop();
+    } catch (e) {
+      zipVm.fail();
+      throw e;
+    }
 
+    // 获取远端压缩包的信息
+    const { data: stat } = await super.callStats(serviceName, tmpNasZipPath);
+    logger.debug(`.fun-nas-generated.zip stats::\n${JSON.stringify(stat, null, 2)}`);
+
+    // 创建缓存目录
     logger.log('downloading...');
-    const localZipDirname = path.join(process.cwd(), '.s', 'nas');
-    await fs.mkdirs(localZipDirname);
-    const localZipPath = path.join(localZipDirname, '.fun-nas-generated.zip');
-    const { data: bufData } = await super.callDownload(serviceName, tmpNasZipPath);
-    logger.log('\'✔\' download done', 'green');
+    const localZipDirname = path.join(configPath, '.s', 'nas');
+    await fs.ensureDir(localZipDirname);
+    // 下载文件
+    const fileName = `fun-nas-generated-${path.basename(localDir)}.zip`;
+    await this.downloadFile(serviceName, stat, localZipDirname, fileName, false);
 
-    await new Promise((resolve, reject) => {
-      const ws = fs.createWriteStream(localZipPath);
-      ws.write(bufData);
-      ws.end();
-      ws.on('finish', () => {
-        resolve('');
-      });
-      ws.on('error', (error) => {
-        logger.error(`${localZipPath} write error : ${error}`);
-        reject(error);
-      });
-    });
 
+    const localZipPath = path.join(localZipDirname, fileName);
     if (!noUnzip) {
       logger.log('unzipping file');
       await unzip(localZipPath, path.resolve(localDir)).then(() => {
         logger.log("'✔' unzip done!", 'green');
       });
-      logger.debug(`fs remove ${localZipPath}`);
-      // clean
       await fs.remove(localZipPath);
+    } else {
+      logger.log(`Download file path: ${localZipPath}`);
     }
 
     logger.debug(`send clean request ${fcDir} ${tmpNasZipPath}`);
     await super.callClean(serviceName, tmpNasZipPath);
-    logger.log("'✔' download completed!", 'green');
+    logger.log("'✔' download completed", 'green');
+  }
+
+  /**
+   * 下载文件
+   * @param serviceName 服务名称
+   * @param stat 远端文件的信息
+   * @param localDir 本地文件路径
+   * @param fileName 本地文件名称
+   * @param noClobber 不覆盖文件
+   * @returns void
+   */
+  private async downloadFile(serviceName: string, stat: any, localDir: string, fileName: string, noClobber: boolean) {
+    const localFile = path.join(localDir, fileName);
+
+    if (await getFileStat(localFile)) {
+      if (noClobber) {
+        logger.warning(`Your local file ${localFile} already exists, and --no-clobber is specified, skip downloading`);
+        return;
+      }
+
+      await fs.remove(localFile);
+    }
+
+    // 确保文件存在
+    await fs.createFile(localFile);
+
+    const fileSize = stat.size;
+    // 文件切片
+    const fileOffSetCutByChunkSize = splitRangeBySize(0, fileSize);
+    logger.log(`file off set cut by chunk size length: ${fileOffSetCutByChunkSize.length}`);
+    const downloadVm = spinner(`Download file ${0}/${fileSize}`);
+    for (const { start, size } of fileOffSetCutByChunkSize) {
+      downloadVm.text = `Download file ${start}/${fileSize}`;
+      logger.debug(`start: ${start}, size: ${size}, url: ${stat.path}`);
+      try {
+        const { data } = await super.callDownload(serviceName, stat.path, start, size);
+        await this.writeBufToFile(localFile, data, start);
+      } catch (ex) {
+        downloadVm.fail();
+        throw ex;
+      }
+    }
+    downloadVm.succeed('Download succeed');
+  }
+
+  private writeBufToFile(localFile, buf, start) {
+    return new Promise((resolve, reject) => {
+      const ws = fs.createWriteStream(localFile, { start, flags: 'r+' });
+      ws.write(buf);
+      ws.end();
+      ws.on('finish', () => resolve(''));
+      ws.on('error', (error) => reject(error));
+    });
   }
 }

@@ -6,12 +6,11 @@ import rimraf from 'rimraf';
 import md5File from 'md5-file';
 import fs from 'fs-extra';
 import { ICommandProps } from '../../interface';
-import { getFileStat, resolveLocalPath } from '../utils/utils';
+import { resolveLocalPath } from '../utils/utils';
+import { getFileStat, splitRangeBySize } from '../utils/file';
 import readDirRecursive, { chunk } from '../utils/read-dir-recursive';
 import CommandBase from './command-base';
 import logger from '../../common/logger';
-
-const NAS_CHUNK_SIZE = parseInt(process.env.NAS_CHUNK_SIZE || '5', 10) * 1024 * 1024;
 
 interface IApts {
   localDir: string;
@@ -146,7 +145,7 @@ export default class Upload extends CommandBase {
     const createFileCmd = `dd if=/dev/zero of=${actualDstPath} count=0 bs=1 seek=${stat.size}`;
     logger.debug(`Upload url is ${serviceName}, cmd is '${createFileCmd}'`);
     // 文件切片
-    const fileOffSetCutByChunkSize = this.splitRangeBySize(0, stat.size, NAS_CHUNK_SIZE);
+    const fileOffSetCutByChunkSize = splitRangeBySize(0, stat.size);
     if (!fileHash) {
       fileHash = await md5File(localResolvedSrc);
     }
@@ -296,27 +295,6 @@ export default class Upload extends CommandBase {
       });
       uploadQueue.push(fileOffSet);
     });
-  }
-
-  /**
-   * 将代码包切片
-   * @param start 计算量的起点
-   * @param end 计算量的终点
-   * @param chunkSize 计算量的步长
-   * @returns { start:, size }[]
-   */
-  private splitRangeBySize(start: number, end: number, chunkSize: number): Array<{ start: number; size: number }> {
-    if (chunkSize === 0) {
-      throw new Error('chunkSize of function splitRangeBySize should not be 0');
-    }
-
-    const res = [];
-    while (start < end) {
-      const size = Math.min(chunkSize, end - start);
-      res.push({ start, size });
-      start += size;
-    }
-    return res;
   }
 
   /**

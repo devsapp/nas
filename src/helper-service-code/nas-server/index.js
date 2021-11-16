@@ -43,11 +43,21 @@ app.get('/tmp/check', async (req, res) => {
   });
 });
 
-app.post('/download', (req, res) => {
-  res.set('Content-Length', 'application/zip');
-  const { tmpNasZipPath } = req.body;
-  const buffer = fs.readFileSync(tmpNasZipPath);
-  res.send(buffer);
+app.post('/download', async (req, res) => {
+    const { tmpNasZipPath, start, size } = req.body;
+
+    // 读取文件内容
+    console.log(`/download: ${ JSON.stringify(req.body)}`);
+    const fd = await fs.open(tmpNasZipPath, 'r');
+    const body = Buffer.alloc(size);
+    const { bytesRead } = await fs.read(fd, body, 0, size, start);
+    if (bytesRead !== size) {
+        throw new Error('ReadChunkFile function bytesRead not equal read size');
+    }
+    await fs.close(fd);
+
+    res.set('Content-Type', 'application/octet-stream');
+    res.send(body);
 });
 
 app.get('/path/exsit', (req, res) => {
@@ -138,6 +148,7 @@ app.get('/stats', async (req, res) => {
       UserId: stats.uid,
       GroupId: stats.gid,
       mode: stats.mode,
+      size: stats.size,
     });
   } else {
     res.send({
