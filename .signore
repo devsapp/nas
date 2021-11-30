@@ -1,12 +1,5 @@
 node_modules
-
-src/helper-service-code/ensure-nas-dir-exist/node_modules
-src/helper-service-code/ensure-nas-dir-exist/dist
-
-src/helper-service-code/nas-server/node_modules
-src/helper-service-code/nas-server/dist
-src/helper-service-code/nas-server/test
-
+src
 .s
 LICENSE
 package-lock.json
@@ -23,10 +16,14 @@ package-lock.json
 .DS_Store
 .git
 .env
+.signore
 
 README.md
+readme.md
 ./examples
 ./test
 ./Makefile
 ./f2elint.config.js
-./commitlint.config.js 
+./commitlint.config.js
+tsconfig.json
+tsconfig.base.json

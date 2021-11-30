@@ -1,9 +1,9 @@
 import * as core from '@serverless-devs/core';
 import os from 'os';
-import inquirer from 'inquirer';
 import _ from 'lodash';
-import fs from 'fs-extra';
 import path from 'path';
+
+const { fse: fs, inquirer } = core;
 
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

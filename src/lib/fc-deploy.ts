@@ -28,7 +28,7 @@ export default class FcDeploy {
   }
 
   async deploy(inputs: IInputs) {
-    const fcDeploy = await core.loadComponent('devsapp/fc-deploy');
+    const fcDeploy = await core.loadComponent('devsapp/fc-deploy@dev');
     return await fcDeploy.deploy(inputs);
   }
 

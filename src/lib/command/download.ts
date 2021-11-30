@@ -1,11 +1,11 @@
-import fs from 'fs-extra';
-import { spinner, unzip } from '@serverless-devs/core';
+import * as core from '@serverless-devs/core';
 import path from 'path';
 import CommandBase from './command-base';
 import { ICommandProps } from '../../interface';
 import logger from '../../common/logger';
 import { getFileStat, splitRangeBySize } from '../utils/file';
 
+const { spinner, unzip, fse: fs } = core;
 interface IApts {
   localDir: string;
   fcDir: string;
