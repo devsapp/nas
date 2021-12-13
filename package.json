@@ -6,7 +6,7 @@
   "dependencies": {
     "@alicloud/fc2": "^2.3.0",
     "@alicloud/pop-core": "^1.7.10",
-    "@serverless-devs/core": "^0.1.15-beta.3",
+    "@serverless-devs/core": "beta",
     "async": "^3.2.0",
     "lodash": "^4.17.20",
     "md5-file": "^5.0.0",
