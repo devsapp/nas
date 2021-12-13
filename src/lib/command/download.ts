@@ -10,13 +10,13 @@ interface IApts {
   localDir: string;
   fcDir: string;
   noUnzip: boolean;
-  noClobber: boolean;
+  override: boolean;
 }
 
 export default class Download extends CommandBase {
   async cpFromNasToLocal(props: ICommandProps, apts: IApts, configPath: string) {
     const { serviceName } = props;
-    const { localDir, fcDir, noClobber, noUnzip } = apts;
+    const { localDir, fcDir, override, noUnzip } = apts;
 
     logger.info(`Checking remote file ${fcDir} exists`);
     const { data: stat } = await super.callStats(serviceName, fcDir);
@@ -26,12 +26,12 @@ export default class Download extends CommandBase {
     }
 
     if (stat.isDir) {
-      return await this.downloadDir(serviceName, fcDir, localDir, configPath, noClobber, noUnzip);
+      return await this.downloadDir(serviceName, fcDir, localDir, configPath, override, noUnzip);
     }
 
     const dir = path.dirname(localDir);
     const fileName = path.basename(localDir);
-    await this.downloadFile(serviceName, stat, dir, fileName, noClobber);
+    await this.downloadFile(serviceName, stat, dir, fileName, override);
   }
 
   /**
@@ -40,10 +40,16 @@ export default class Download extends CommandBase {
    * @param stat 远端文件的信息
    * @param fcDir 远端文件路径
    * @param localDir 本地文件路径
-   * @param noClobber 不强制覆盖文件
+   * @param override 强制覆盖文件
    * @param noUnzip 是否解压文件
    */
-  private async downloadDir(serviceName: string, fcDir: string, localDir: string, configPath: string, noClobber: boolean, noUnzip: boolean) {
+  private async downloadDir(serviceName: string, fcDir: string, localDir: string, configPath: string, override: boolean, noUnzip: boolean) {
+    if (await getFileStat(localDir)) {
+      if (!override) {
+        logger.warning(`Your local file ${localDir} already exists, skip downloading`);
+        return;
+      }
+    }
     // 将远端目录压缩成一个压缩包
     const zipVm = spinner(`zipping ${fcDir}`);
     const tmpNasZipPath = path.posix.join(path.dirname(fcDir), '.fun-nas-generated.zip');
@@ -92,18 +98,17 @@ export default class Download extends CommandBase {
    * @param stat 远端文件的信息
    * @param localDir 本地文件路径
    * @param fileName 本地文件名称
-   * @param noClobber 不覆盖文件
+   * @param override 覆盖文件
    * @returns void
    */
-  private async downloadFile(serviceName: string, stat: any, localDir: string, fileName: string, noClobber: boolean) {
+  private async downloadFile(serviceName: string, stat: any, localDir: string, fileName: string, override: boolean) {
     const localFile = path.join(localDir, fileName);
 
     if (await getFileStat(localFile)) {
-      if (noClobber) {
-        logger.warning(`Your local file ${localFile} already exists, and --no-clobber is specified, skip downloading`);
+      if (!override) {
+        logger.warning(`Your local file ${localFile} already exists, skip downloading`);
         return;
       }
-
       await fs.remove(localFile);
     }
 

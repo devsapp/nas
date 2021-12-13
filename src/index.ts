@@ -138,8 +138,8 @@ export default class NasCompoent extends Base {
     logger.debug(`new input.props: ${JSON.stringify(props)}, inputs.args: ${args}`);
 
     const apts = {
-      boolean: ['help', 'no-clobber', 'no-unzip'],
-      alias: { 'no-clobber': 'n', help: 'h' },
+      boolean: ['help', 'override', 'no-unzip'],
+      alias: { override: 'o', help: 'h' },
     };
     const commandData: any = core.commandParse(inputs, apts);
     logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
@@ -151,13 +151,13 @@ export default class NasCompoent extends Base {
     const configPath = getConfigDirname(inputs?.path?.configPath);
     // --no 开头 commandParse 方法解析不出 true 这种参数
     const noUnzip = commandData.data?.['no-unzip'] || args?.includes('--no-unzip');
-    const noClobber = commandData.data?.['no-clobber'] || args?.includes('--no-clobber');
+    const override = commandData.data?.override;
     const [fcDir, localDir] = commandData.data?._ || [];
     const credentials = await getCredential(inputs.credentials, inputs);
     this.reportComponent('command', credentials.AccountID);
     await this.initHelperService(inputs);
     const download = new Download(credentials, props.regionId);
-    await download.cpFromNasToLocal(props, { localDir, fcDir: argReplace(fcDir), noUnzip, noClobber }, configPath);
+    await download.cpFromNasToLocal(props, { localDir, fcDir: argReplace(fcDir), noUnzip, override }, configPath);
   }
 
   /**
@@ -171,8 +171,8 @@ export default class NasCompoent extends Base {
     logger.debug(`new input.props: ${JSON.stringify(props)}, inputs.args: ${args}`);
 
     const apts = {
-      boolean: ['recursive', 'help', 'no-clobber'],
-      alias: { recursive: 'r', 'no-clobber': 'n', help: 'h' },
+      boolean: ['recursive', 'help', 'override'],
+      alias: { recursive: 'r', override: 'o', help: 'h' },
     };
     const commandData: any = core.commandParse(inputs, apts);
     logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
@@ -182,14 +182,14 @@ export default class NasCompoent extends Base {
 
     checkInputs(props);
     const { recursive } = commandData.data || {};
-    const noClobber = commandData.data?.['no-clobber'] || args?.includes('--no-clobber');
+    const override = commandData.data?.override;
     const [localDir, fcDir] = commandData.data?._ || [];
     const credentials = await getCredential(inputs.credentials, inputs);
     this.reportComponent('command', credentials.AccountID);
     await this.initHelperService(inputs);
 
     const upload = new Upload(credentials, props.regionId);
-    await upload.cpFromLocalToNas(props, { localDir, fcDir: argReplace(fcDir), recursive, noClobber });
+    await upload.cpFromLocalToNas(props, { localDir, fcDir: argReplace(fcDir), recursive, override });
   }
 
   /**

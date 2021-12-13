@@ -16,7 +16,7 @@ interface IApts {
   localDir: string;
   fcDir: string;
   recursive: boolean;
-  noClobber: boolean;
+  override: boolean;
 }
 
 interface IDstStats {
@@ -31,7 +31,7 @@ interface IDstStats {
 export default class Upload extends CommandBase {
   async cpFromLocalToNas(props: ICommandProps, apts: IApts) {
     const { serviceName, userId = 10003, groupId = 10003 } = props;
-    const { localDir, fcDir, recursive, noClobber } = apts;
+    const { localDir, fcDir, recursive, override } = apts;
     const localResolvedSrc = resolveLocalPath(localDir);
     const localFileStat = await getFileStat(localResolvedSrc);
     if (!localFileStat) {
@@ -56,7 +56,7 @@ export default class Upload extends CommandBase {
       serviceName,
       localResolvedSrc,
       dstStats,
-      noClobber,
+      override,
       isDirectory,
     );
     const permTip = this.checkWritePerm(stats, userId, groupId, fcDir);
@@ -69,7 +69,7 @@ export default class Upload extends CommandBase {
         localResolvedSrc,
         actualDstPath,
         serviceName,
-        noClobber,
+        override,
       );
     } else if (localFileStat.isFile()) {
       await this.uploadFile(localResolvedSrc, actualDstPath, serviceName);
@@ -83,13 +83,13 @@ export default class Upload extends CommandBase {
    * @param localResolvedSrc 本地代码包地址
    * @param actualDstPath 目标地址
    * @param serviceName 主函数的服务名称
-   * @param noClobber 不覆盖
+   * @param override 覆盖
    */
   async uploadFolder(
     localResolvedSrc: string,
     actualDstPath: string,
     serviceName: string,
-    noClobber: boolean,
+    override: boolean,
   ) {
     const outputFileName = `${path.basename(path.resolve(localResolvedSrc))}.zip`;
     const outputFilePath = path.join(process.cwd(), '.s', 'zip');
@@ -116,7 +116,7 @@ export default class Upload extends CommandBase {
       actualDstPath,
       nasZipFilePath,
       chunk(srcPathFiles, 248),
-      noClobber,
+      override,
       unZippingVm,
     );
 
@@ -186,7 +186,7 @@ export default class Upload extends CommandBase {
    * @param dstDir 解压的目标地址
    * @param nasZipFile 解压的文件地址
    * @param filesArrQueue 解压的队列
-   * @param noClobber 是否覆盖
+   * @param override 是否覆盖
    * @returns Promise<viod>
    */
   private unzipNasFileParallel(
@@ -194,13 +194,13 @@ export default class Upload extends CommandBase {
     dstDir: string,
     nasZipFile: string,
     filesArrQueue: any[],
-    noClobber: boolean,
+    override: boolean,
     unZippingVm: any,
   ) {
     return new Promise((resolve) => {
       const unzipQueue = async.queue(async (unzipFiles, next) => {
         try {
-          let cmd = `unzip -q ${noClobber ? '-n' : '-o'} ${nasZipFile} -d ${dstDir}`;
+          let cmd = `unzip -q ${override ? '-o' : '-n'} ${nasZipFile} -d ${dstDir}`;
           for (const unzipFile of unzipFiles) {
             cmd += ` '${unzipFile}'`;
           }
@@ -304,7 +304,7 @@ export default class Upload extends CommandBase {
     serviceName: string,
     localFilePath: string,
     dstStats: IDstStats,
-    noClobber: boolean, // 不覆盖
+    override: boolean, // 覆盖
     isDirectory: boolean, // 本地是否是文件夹
   ) {
     const {
@@ -346,7 +346,7 @@ export default class Upload extends CommandBase {
       // 如果本地不是文件夹，check 新的目标地址
       if (dstPathIsDir) {
         const { data: stats } = await super.callStats(serviceName, newDstPath);
-        if (stats.isFile && noClobber) {
+        if (stats.isFile && !override) {
           throw new Error(`${newDstPath} already exists`);
         }
         if (!stats.exists || stats.isFile) {
@@ -354,7 +354,7 @@ export default class Upload extends CommandBase {
         }
         throw new Error(localFileButDstDirError);
       }
-      if (noClobber) throw new Error(`${dstPath} already exists`);
+      if (!override) throw new Error(`${dstPath} already exists`);
       return dstPath;
     }
     // 远端地址不存在
