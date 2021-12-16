@@ -54,7 +54,7 @@ export default class NasOperationInitHelperService extends FcDeploy {
       service: {
         name: service,
         role: inputs.props?.role,
-        description: `${description} VERSION: ${version}`,
+        description: `${description || getDefaultDescription(serviceName)} VERSION: ${version}`,
         vpcConfig,
         nasConfig: {
           userId,
