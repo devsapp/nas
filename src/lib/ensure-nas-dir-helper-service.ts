@@ -47,7 +47,6 @@ export default class EnsureNasDirHelperService extends FcDeploy {
       groupId = 10003,
       userId = 10003,
       mountPoints,
-      description,
     } = inputs.props || {};
     if (_.isEmpty(regionId)) {
       throw new Error('Parameter is missing regionId');
@@ -76,7 +75,7 @@ export default class EnsureNasDirHelperService extends FcDeploy {
       service: {
         name: service,
         role: inputs.props?.role,
-        description: `${description || getDefaultDescription(serviceName)} VERSION: ${version}`,
+        description: `${getDefaultDescription(serviceName)} VERSION: ${version}`,
         vpcConfig,
         nasConfig: {
           userId,
