@@ -33,8 +33,16 @@ export default class FcDeploy {
   }
 
   async remove(inputs: IInputs) {
-    const fc = await core.loadComponent('devsapp/fc@dev');
-    return await fc.remove(inputs);
+    try {
+      const { data } = await this.fcClient.getService(inputs.props.service.name);
+      if (!data?.description.startsWith('当前资源由Serverless Devs自动创建，')) {
+        return;
+      }
+      const fc = await core.loadComponent('devsapp/fc@dev');
+      return await fc.remove(inputs);
+    } catch (ex) {
+      logger.debug(`get service error: ${ex?.code}, ${ex?.message}`);
+    }
   }
 
   async getState(name) {
