@@ -33,7 +33,7 @@ export default class FcDeploy {
   }
 
   async remove(inputs: IInputs) {
-    const fc = await core.loadComponent('devsapp/fc');
+    const fc = await core.loadComponent('devsapp/fc@dev');
     return await fc.remove(inputs);
   }
 
