@@ -61,7 +61,7 @@ export default class Nas {
     } = props;
     let { fileSystemId, mountTargetDomain } = (await this.findNasFileSystem(nasName, zoneId, vpcConfig)) || {};
     
-    logger.task('Creating', [
+    await logger.task('Creating', [
       {
         title: `Creating NasFileSystem: ${nasName}`,
         id: 'NasFileSystem',
@@ -74,7 +74,7 @@ export default class Nas {
         },
       },
       {
-        title: `Creating MountTarget: ${fileSystemId}`,
+        title:() => `Creating MountTarget: ${fileSystemId}`,
         id: 'MountTarget',
         enabled: () => _.isEmpty(mountTargetDomain),
         task: async () => {
