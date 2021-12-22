@@ -46,7 +46,7 @@ export default class Download extends CommandBase {
   private async downloadDir(serviceName: string, fcDir: string, localDir: string, configPath: string, override: boolean, noUnzip: boolean) {
     if (await getFileStat(localDir)) {
       if (!override) {
-        logger.warning(`Your local file ${localDir} already exists, skip downloading`);
+        logger.warn(`Your local file ${localDir} already exists, skip downloading`);
         return;
       }
     }
@@ -106,7 +106,7 @@ export default class Download extends CommandBase {
 
     if (await getFileStat(localFile)) {
       if (!override) {
-        logger.warning(`Your local file ${localFile} already exists, skip downloading`);
+        logger.warn(`Your local file ${localFile} already exists, skip downloading`);
         return;
       }
       await fs.remove(localFile);
