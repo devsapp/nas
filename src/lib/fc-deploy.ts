@@ -28,7 +28,7 @@ export default class FcDeploy {
   }
 
   async deploy(inputs: IInputs) {
-    const fcDeploy = await core.loadComponent('devsapp/fc-deploy@dev');
+    const fcDeploy = await core.loadComponent('devsapp/fc-deploy');
     return await fcDeploy.deploy(inputs);
   }
 
@@ -38,7 +38,7 @@ export default class FcDeploy {
       if (!data?.description.startsWith('当前资源由Serverless Devs自动创建，')) {
         return;
       }
-      const fc = await core.loadComponent('devsapp/fc@dev');
+      const fc = await core.loadComponent('devsapp/fc');
       return await fc.remove(inputs);
     } catch (ex) {
       logger.debug(`get service error: ${ex?.code}, ${ex?.message}`);
