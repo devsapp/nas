@@ -1,6 +1,8 @@
 
-import fs from 'fs-extra';
+import * as core from '@serverless-devs/core';
 import logger from '../../common/logger';
+
+const { fse: fs } = core;
 
 export async function getFileStat(dirPath: string) {
   try {

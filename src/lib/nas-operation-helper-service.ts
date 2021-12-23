@@ -10,6 +10,7 @@ const zipFileName = `nas-server-${version}.zip`;
 const NAS_HELPER_SERVERVICE_MEMORY_SIZE = parseInt(process.env.NAS_HELPER_SERVERVICE_MEMORY_SIZE || '256', 10); // 操作 nas 辅助函数的内存大小
 
 export const getServiceName = (name: string) => `_FC_NAS_${name}`;
+export const getDefaultDescription = (name) => `当前资源由Serverless Devs自动创建，用于操作 nas，与函数服务资源【${name}】关联`;
 export const NAS_OPERATION_HELPER_FUNCTION_NAME = 'nas_dir_checker'; // 操作 nas 辅助函数的函数名称
 
 export default class NasOperationInitHelperService extends FcDeploy {
@@ -26,7 +27,6 @@ export default class NasOperationInitHelperService extends FcDeploy {
       groupId = 10003,
       userId = 10003,
       mountPoints,
-      description,
     } = inputs.props || {};
     if (_.isEmpty(regionId)) {
       throw new Error('Parameter is missing regionId');
@@ -53,7 +53,7 @@ export default class NasOperationInitHelperService extends FcDeploy {
       service: {
         name: service,
         role: inputs.props?.role,
-        description: `${description} VERSION: ${version}`,
+        description: `${getDefaultDescription(serviceName)} VERSION: ${version}`,
         vpcConfig,
         nasConfig: {
           userId,

@@ -1,8 +1,10 @@
 import fs from 'fs';
 import _ from 'lodash';
 import path from 'path';
-import ignore from 'ignore';
 import walkdir from 'walkdir';
+import * as core from '@serverless-devs/core';
+
+const { ignore } = core;
 
 function isEmptyDir(targetPath) {
   const lstat = fs.lstatSync(targetPath);

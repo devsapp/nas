@@ -1,16 +1,16 @@
-import { spinner, zip } from '@serverless-devs/core';
+import * as core from '@serverless-devs/core';
 import path from 'path';
 import async from 'async';
 import _ from 'lodash';
-import rimraf from 'rimraf';
 import md5File from 'md5-file';
-import fs from 'fs-extra';
 import { ICommandProps } from '../../interface';
 import { resolveLocalPath } from '../utils/utils';
 import { getFileStat, splitRangeBySize } from '../utils/file';
 import readDirRecursive, { chunk } from '../utils/read-dir-recursive';
 import CommandBase from './command-base';
 import logger from '../../common/logger';
+
+const { spinner, zip, fse: fs, rimraf } = core;
 
 interface IApts {
   localDir: string;

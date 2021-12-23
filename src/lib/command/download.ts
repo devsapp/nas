@@ -1,11 +1,11 @@
-import fs from 'fs-extra';
-import { spinner, unzip } from '@serverless-devs/core';
+import * as core from '@serverless-devs/core';
 import path from 'path';
 import CommandBase from './command-base';
 import { ICommandProps } from '../../interface';
 import logger from '../../common/logger';
 import { getFileStat, splitRangeBySize } from '../utils/file';
 
+const { spinner, unzip, fse: fs } = core;
 interface IApts {
   localDir: string;
   fcDir: string;
@@ -46,7 +46,7 @@ export default class Download extends CommandBase {
   private async downloadDir(serviceName: string, fcDir: string, localDir: string, configPath: string, override: boolean, noUnzip: boolean) {
     if (await getFileStat(localDir)) {
       if (!override) {
-        logger.warning(`Your local file ${localDir} already exists, skip downloading`);
+        logger.warn(`Your local file ${localDir} already exists, skip downloading`);
         return;
       }
     }
@@ -106,7 +106,7 @@ export default class Download extends CommandBase {
 
     if (await getFileStat(localFile)) {
       if (!override) {
-        logger.warning(`Your local file ${localFile} already exists, skip downloading`);
+        logger.warn(`Your local file ${localFile} already exists, skip downloading`);
         return;
       }
       await fs.remove(localFile);

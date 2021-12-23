@@ -61,16 +61,34 @@ export default class Nas {
     } = props;
     let { fileSystemId, mountTargetDomain } = (await this.findNasFileSystem(nasName, zoneId, vpcConfig)) || {};
 
-    if (_.isEmpty(fileSystemId)) {
-      logger.info(`Creating NasFileSystem: ${nasName}`);
-      fileSystemId = await this.createNasFileSystem(regionId, zoneId, nasName, storageType);
-      logger.debug(`Default nas file system has been generated, fileSystemId is: ${fileSystemId}`);
-    }
-    if (_.isEmpty(mountTargetDomain)) {
-      logger.info(`Creating MountTarget: ${fileSystemId}`);
-      mountTargetDomain = await this.createMountTarget(fileSystemId, vpcConfig.vpcId, vpcConfig.vSwitchIds[0]);
-      logger.debug(`Default nas file system mount target has been generated, mount domain is: ${mountTargetDomain}`);
-    }
+    await logger.task('Creating', [
+      {
+        title: `Creating NasFileSystem: ${nasName}`,
+        id: 'NasFileSystem',
+        enabled: () => _.isEmpty(fileSystemId),
+        task: async () => {
+          fileSystemId = await this.createNasFileSystem(regionId, zoneId, nasName, storageType);
+          logger.debug(
+            `Default nas file system has been generated, fileSystemId is: ${fileSystemId}`,
+          );
+        },
+      },
+      {
+        title: () => `Creating MountTarget: ${fileSystemId}`,
+        id: 'MountTarget',
+        enabled: () => _.isEmpty(mountTargetDomain),
+        task: async () => {
+          mountTargetDomain = await this.createMountTarget(
+            fileSystemId,
+            vpcConfig.vpcId,
+            vpcConfig.vSwitchIds[0],
+          );
+          logger.debug(
+            `Default nas file system mount target has been generated, mount domain is: ${mountTargetDomain}`,
+          );
+        },
+      },
+    ]);
 
     return {
       fileSystemId,
@@ -109,13 +127,13 @@ export default class Nas {
   private async removeAccordingToFileSystemId(fileSystemId: string) {
     const mountPointDomains = [];
     if (!fileSystemId) {
-      logger.warning(`Not found fileSystemId: ${fileSystemId}`);
+      logger.warn(`Not found fileSystemId: ${fileSystemId}`);
       return {};
     }
 
     const { TotalCount, FileSystems } = await this.DescribeFileSystems({ FileSystemId: fileSystemId });
     if (TotalCount === 0) {
-      logger.warning(`Reminder Nas: FileSystem(${fileSystemId}) was not found, skip remove`);
+      logger.warn(`Reminder Nas: FileSystem(${fileSystemId}) was not found, skip remove`);
       return {};
     }
 
@@ -246,7 +264,7 @@ export default class Nas {
         }
 
         if (this.assumeYes) {
-          logger.warning(`Reminder: Region ${region} only supports capacity NAS.`);
+          logger.warn(`Reminder: Region ${region} only supports capacity NAS.`);
           return 'Capacity';
         }
 
@@ -312,7 +330,7 @@ export default class Nas {
       );
       status = rs.MountTargets?.MountTarget[0]?.Status;
       logger.debug(`nas status is: ${ status}`);
-      logger.info(`Nas mount target domain already created, waiting for status to be 'Active', now is ${status}`);
+      logger.debug(`Nas mount target domain already created, waiting for status to be 'Active', now is ${status}`);
     } while (count < 15 && status !== 'Active');
 
     if (status !== 'Active') {

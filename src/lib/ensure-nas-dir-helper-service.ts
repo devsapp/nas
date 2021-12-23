@@ -9,6 +9,7 @@ import logger from '../common/logger';
 
 const FUNCTION_NAME = 'nas_dir_checker';
 const getServiceName = (name: string) => `_FC_NAS_${name}-ensure-nas-dir-exist-service`;
+const getDefaultDescription = (name) => `当前资源由Serverless Devs自动创建，用于确保绑定到函数计算的 nas 目录存在，与函数服务资源【${name}】关联`;
 const version = getCodeVersion();
 
 export default class EnsureNasDirHelperService extends FcDeploy {
@@ -46,7 +47,6 @@ export default class EnsureNasDirHelperService extends FcDeploy {
       groupId = 10003,
       userId = 10003,
       mountPoints,
-      description,
     } = inputs.props || {};
     if (_.isEmpty(regionId)) {
       throw new Error('Parameter is missing regionId');
@@ -75,7 +75,7 @@ export default class EnsureNasDirHelperService extends FcDeploy {
       service: {
         name: service,
         role: inputs.props?.role,
-        description: `${description} VERSION: ${version}`,
+        description: `${getDefaultDescription(serviceName)} VERSION: ${version}`,
         vpcConfig,
         nasConfig: {
           userId,
