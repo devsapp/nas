@@ -184,6 +184,9 @@ export default class NasCompoent extends Base {
     const { recursive } = commandData.data || {};
     const override = commandData.data?.override;
     const [localDir, fcDir] = commandData.data?._ || [];
+    if (_.isEmpty(localDir) || _.isEmpty(fcDir)) {
+      throw new Error(`Handle the exception of input parameters, localDir is ${localDir}, fcDir is ${fcDir}.\nPlease execute '$ s nas upload -h' to view the example`);
+    }
     const credentials = await getCredential(inputs.credentials, inputs);
     this.reportComponent('command', credentials.AccountID);
     await this.initHelperService(inputs);
