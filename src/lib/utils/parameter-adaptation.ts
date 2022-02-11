@@ -39,6 +39,10 @@ export default class ParameterAdaptation {
       pickArr.push('mountPointDomain', 'nasDir', 'fcDir');
     }
 
+    if (_.has(newProps, 'vpcConfig.vswitchIds')) {
+      newProps.vpcConfig.vSwitchIds = newProps.vpcConfig.vswitchIds;
+    }
+
     return _.omit(newProps, pickArr);
   }
 }

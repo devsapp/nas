@@ -4,7 +4,6 @@
   "main": "./dist/index.js",
   "autoInstall": false,
   "dependencies": {
-    "@alicloud/fc2": "^2.3.0",
     "@alicloud/pop-core": "^1.7.10",
     "@serverless-devs/core": "latest",
     "async": "^3.2.0",

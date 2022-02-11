@@ -154,11 +154,11 @@ export default class Upload extends CommandBase {
     const { data } = await super.callCommands(serviceName, createFileCmd);
     logger.debug(JSON.stringify(data));
     if (data.error) {
-      createVm.fail();
+      createVm?.fail();
       logger.log('');
       throw new Error(data.error);
     }
-    createVm.stop();
+    createVm?.stop();
     // 分片上传
     await this.uploadFileByChunk(
       serviceName,
@@ -210,7 +210,7 @@ export default class Upload extends CommandBase {
         } catch (error) {
           // zip 中存在特殊文件名，例如 $data.js，或者没有权限
           if (error.message && (error.message?.includes('filename not matched') || error.message.toLowerCase()?.includes('permission denied'))) {
-            unZippingVm.fail();
+            unZippingVm?.fail();
             return logger.error(`Unzipping file error: ${error.code || ''} ${error.message}`);
           }
 
@@ -236,7 +236,7 @@ export default class Upload extends CommandBase {
       }, 5);
 
       unzipQueue.drain(() => {
-        unZippingVm.stop();
+        unZippingVm?.stop();
         resolve('');
       });
       unzipQueue.push(filesArrQueue);
@@ -282,7 +282,7 @@ export default class Upload extends CommandBase {
         } catch (error) {
           logger.error(`upload error : ${error.message}`);
           logger.debug(error.stack);
-          vm.fail();
+          vm?.fail();
           // TODO：RETRY
           return;
         }

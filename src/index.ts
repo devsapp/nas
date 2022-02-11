@@ -23,6 +23,7 @@ import * as help from './lib/help';
 
 const APTS = { boolean: ['help', 'y'], alias: { help: 'h', 'assume-yes': 'y' } };
 export default class NasCompoent extends Base {
+  fcClient: any;
   /**
    * 创建 nas 资源，并创建辅助函数
    * @param inputs props 参数参考 IDeployProps
@@ -118,12 +119,13 @@ export default class NasCompoent extends Base {
 
     checkInputs(props);
     const credentials = await getCredential(inputs.credentials, inputs);
+    const fcClient = await this.getFcClient(inputs);
     this.reportComponent('command', credentials.AccountID);
 
-    const nasOperationInitHelperService = new NasOperationInitHelperService(credentials, inputs.props?.regionId);
+    const nasOperationInitHelperService = new NasOperationInitHelperService(credentials, inputs.props?.regionId, fcClient);
     await nasOperationInitHelperService.init(inputs);
 
-    const command = new Command(credentials, props.regionId);
+    const command = new Command(credentials, props.regionId, fcClient);
     await command.command(props.serviceName, args);
   }
 
@@ -156,7 +158,7 @@ export default class NasCompoent extends Base {
     const credentials = await getCredential(inputs.credentials, inputs);
     this.reportComponent('command', credentials.AccountID);
     await this.initHelperService(inputs);
-    const download = new Download(credentials, props.regionId);
+    const download = new Download(credentials, props.regionId, this.fcClient);
     await download.cpFromNasToLocal(props, { localDir, fcDir: argReplace(fcDir), noUnzip, override }, configPath);
   }
 
@@ -191,7 +193,7 @@ export default class NasCompoent extends Base {
     this.reportComponent('command', credentials.AccountID);
     await this.initHelperService(inputs);
 
-    const upload = new Upload(credentials, props.regionId);
+    const upload = new Upload(credentials, props.regionId, this.fcClient);
     await upload.cpFromLocalToNas(props, { localDir, fcDir: argReplace(fcDir), recursive, override });
   }
 
@@ -204,11 +206,12 @@ export default class NasCompoent extends Base {
     inputs.props = ParameterAdaptation.adapta01(inputs.props);
     logger.debug(`new input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
     const credentials = await getCredential(inputs.credentials, inputs);
+    const fcClient = await this.getFcClient(inputs);
 
-    const ensureNasDirInitHelperService = new EnsureNasDirInitHelperService(credentials, inputs.props?.regionId);
+    const ensureNasDirInitHelperService = new EnsureNasDirInitHelperService(credentials, inputs.props?.regionId, fcClient);
     await ensureNasDirInitHelperService.init(inputs);
 
-    const nasOperationInitHelperService = new NasOperationInitHelperService(credentials, inputs.props?.regionId);
+    const nasOperationInitHelperService = new NasOperationInitHelperService(credentials, inputs.props?.regionId, fcClient);
     await nasOperationInitHelperService.init(inputs);
   }
 
@@ -221,8 +224,9 @@ export default class NasCompoent extends Base {
     inputs.props = ParameterAdaptation.adapta01(inputs.props);
     logger.debug(`new input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
     const credentials = await getCredential(inputs.credentials, inputs);
+    const fcClient = await this.getFcClient(inputs);
 
-    const ensureNasDirInitHelperService = new EnsureNasDirInitHelperService(credentials, inputs.props?.regionId);
+    const ensureNasDirInitHelperService = new EnsureNasDirInitHelperService(credentials, inputs.props?.regionId, fcClient);
     await ensureNasDirInitHelperService.init(inputs);
   }
 
@@ -236,7 +240,8 @@ export default class NasCompoent extends Base {
 
     const credentials = await getCredential(inputs.credentials, inputs);
     try {
-      const nasOperationInitHelperService = new NasOperationInitHelperService(credentials, inputs.props?.regionId);
+      const fcClient = await this.getFcClient(inputs);
+      const nasOperationInitHelperService = new NasOperationInitHelperService(credentials, inputs.props?.regionId, fcClient);
       await nasOperationInitHelperService.remove(inputs);
     } catch (ex) {
       logger.debug(`remove nasOperationInitHelperService error: ${ex.code}, ${ex.message}`);
@@ -251,7 +256,8 @@ export default class NasCompoent extends Base {
     logger.debug(`new input.props: ${JSON.stringify(inputs.props)}, inputs.args: ${inputs.args}`);
     const credentials = await getCredential(inputs.credentials, inputs);
     try {
-      const ensureNasDirInitHelperService = new EnsureNasDirInitHelperService(credentials, inputs.props?.regionId);
+      const fcClient = await this.getFcClient(inputs);
+      const ensureNasDirInitHelperService = new EnsureNasDirInitHelperService(credentials, inputs.props?.regionId, fcClient);
       await ensureNasDirInitHelperService.remove(inputs);
     } catch (ex) {
       logger.debug(`remove ensureNasDirInitHelperService error: ${ex.code}, ${ex.message}`);
@@ -260,6 +266,37 @@ export default class NasCompoent extends Base {
 
   private reportComponent(command: string, uid: string) {
     core.reportComponent('fc-nas', { uid, command });
+  }
+
+  private async getFcClient(inputs) {
+    const fcCore = await core.loadComponent('devsapp/fc-core');
+    const props = {
+      access: inputs.credentials?.Alias || inputs.project?.access,
+      credentials: inputs.credentials,
+      region: inputs.props?.regionId,
+    };
+    const client = await fcCore.makeFcClient(props);
+    client.get = async (path, query, headers) => {
+      const res = await client.request('GET', path, query, null, headers);
+      const data = (res && res.data) || {};
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      return res;
+    };
+
+    client.post = async (path, body, headers, queries, opts = {}) => {
+      const res = await client.request('POST', path, queries, body, headers, opts);
+      const data = (res && res.data) || {};
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      return res;
+    };
+    this.fcClient = client;
+    return client;
   }
 }
 
