@@ -1,5 +1,4 @@
 import { ICredentials } from '../../interface';
-import FcClient from '../utils/client';
 import { getServiceName, NAS_OPERATION_HELPER_FUNCTION_NAME } from '../nas-operation-helper-service';
 
 export default class CommandBase {
@@ -7,11 +6,11 @@ export default class CommandBase {
   region: string;
   fcClient: any;
 
-  constructor(credentials, regionId: string) {
+  constructor(credentials, regionId: string, fcClient: any) {
     this.credentials = credentials;
     this.region = regionId;
 
-    this.fcClient = FcClient(regionId, credentials);
+    this.fcClient = fcClient;
   }
 
   getChunkFileUploadReqPath(serviceName: string): string {

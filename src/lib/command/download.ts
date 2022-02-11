@@ -57,9 +57,9 @@ export default class Download extends CommandBase {
     logger.debug(`zipping cmd: ${cmd}`);
     try {
       await super.callCommands(serviceName, cmd);
-      zipVm.stop();
+      zipVm?.stop();
     } catch (e) {
-      zipVm.fail();
+      zipVm?.fail();
       throw e;
     }
 
@@ -127,11 +127,11 @@ export default class Download extends CommandBase {
         const { data } = await super.callDownload(serviceName, stat.path, start, size);
         await this.writeBufToFile(localFile, data, start);
       } catch (ex) {
-        downloadVm.fail();
+        downloadVm?.fail();
         throw ex;
       }
     }
-    downloadVm.succeed('Download succeed');
+    downloadVm?.succeed('Download succeed');
   }
 
   private writeBufToFile(localFile, buf, start) {

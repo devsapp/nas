@@ -1,6 +1,5 @@
 import * as core from '@serverless-devs/core';
 import _ from 'lodash';
-import FcClient from './utils/client';
 import { makeSureNasUriStartWithSlash } from './utils/utils';
 import { IInputs, INasConfig, IVpcConfig } from '../interface';
 import logger from '../common/logger';
@@ -20,11 +19,11 @@ export default class FcDeploy {
   region: string;
   fcClient: any;
 
-  constructor(credentials, regionId: string) {
+  constructor(credentials, regionId: string, fcClient: any) {
     this.accountId = credentials?.AccountID;
     this.region = regionId;
 
-    this.fcClient = FcClient(regionId, credentials);
+    this.fcClient = fcClient;
   }
 
   async deploy(inputs: IInputs) {

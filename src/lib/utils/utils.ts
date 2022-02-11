@@ -11,7 +11,9 @@ export async function getCredential(credentials, inputs) {
   if (!_.isEmpty(credentials)) {
     return credentials;
   }
-  return await core.getCredential(inputs, inputs?.project?.access);
+  credentials = await core.getCredential(inputs, inputs?.project?.access);
+  inputs.credentials = credentials;
+  return credentials;
 }
 
 // 只能判断非根目录的路径
