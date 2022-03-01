@@ -7,7 +7,7 @@ import logger from '../common/logger';
 
 const version = getCodeVersion();
 const zipFileName = `nas-server-${version}.zip`;
-const NAS_HELPER_SERVERVICE_MEMORY_SIZE = parseInt(process.env.NAS_HELPER_SERVERVICE_MEMORY_SIZE || '256', 10); // 操作 nas 辅助函数的内存大小
+const NAS_HELPER_SERVERVICE_MEMORY_SIZE = parseInt(process.env.NAS_HELPER_SERVERVICE_MEMORY_SIZE || '1536', 10); // 操作 nas 辅助函数的内存大小
 
 export const getServiceName = (name: string) => `_FC_NAS_${name}`;
 export const getDefaultDescription = (name) => `当前资源由Serverless Devs自动创建，用于操作 nas，与函数服务资源【${name}】关联`;
