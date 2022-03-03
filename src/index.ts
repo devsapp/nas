@@ -155,6 +155,9 @@ export default class NasCompoent extends Base {
     const noUnzip = commandData.data?.['no-unzip'] || args?.includes('--no-unzip');
     const override = commandData.data?.override;
     const [fcDir, localDir] = commandData.data?._ || [];
+    if (_.isEmpty(localDir) || _.isEmpty(fcDir)) {
+      throw new Error(`Handle the exception of input parameters, localDir is ${localDir}, fcDir is ${fcDir}.\nPlease execute '$ s nas download -h' to view the example`);
+    }
     const credentials = await getCredential(inputs.credentials, inputs);
     this.reportComponent('command', credentials.AccountID);
     await this.initHelperService(inputs);
@@ -274,6 +277,7 @@ export default class NasCompoent extends Base {
       access: inputs.credentials?.Alias || inputs.project?.access,
       credentials: inputs.credentials,
       region: inputs.props?.regionId,
+      timeout: 1800,
     };
     const client = await fcCore.makeFcClient(props);
     client.get = async (path, query, headers) => {

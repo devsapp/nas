@@ -425,4 +425,3 @@ export default class Upload extends CommandBase {
     return undefined;
   }
 }
-
