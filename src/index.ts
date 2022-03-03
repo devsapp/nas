@@ -277,6 +277,7 @@ export default class NasCompoent extends Base {
       access: inputs.credentials?.Alias || inputs.project?.access,
       credentials: inputs.credentials,
       region: inputs.props?.regionId,
+      timeout: 1800,
     };
     const client = await fcCore.makeFcClient(props);
     client.get = async (path, query, headers) => {

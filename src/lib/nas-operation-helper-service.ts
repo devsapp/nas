@@ -64,7 +64,7 @@ export default class NasOperationInitHelperService extends FcDeploy {
       function: {
         name: NAS_OPERATION_HELPER_FUNCTION_NAME,
         handler: 'index.handler',
-        timeout: 600,
+        timeout: 1800,
         memorySize: NAS_HELPER_SERVERVICE_MEMORY_SIZE,
         codeUri: ENSURENASDIREXISTFILENAME,
         runtime: 'nodejs12',
