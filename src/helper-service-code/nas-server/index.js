@@ -81,7 +81,7 @@ app.get('/file/check', async (req, res) => {
     });
   } else {
     rimraf.sync(nasFile);
-    throw new Error('file hash changes, you need to re-sync');
+    throw new Error('file hash changes, you need to re-upload');
   }
 });
 
@@ -175,8 +175,8 @@ module.exports.handler = async (req, res, context) => {
   const body = await getRawBody(req);
 
   req.body = body;
-  // 设置 server 端的超时时间为 600 秒, 此处单位为毫秒
-  server.rawServer.setTimeout(600 * 1000);
+  // 设置 server 端的超时时间为 1800 秒, 此处单位为毫秒
+  server.rawServer.setTimeout(1800 * 1000);
   server.httpProxy(req, res, context);
 };
 
