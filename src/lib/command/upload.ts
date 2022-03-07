@@ -92,8 +92,8 @@ export default class Upload extends CommandBase {
     override: boolean,
   ) {
     const outputFileName = `${path.basename(path.resolve(localResolvedSrc))}.zip`;
-    const outputFilePath = path.join(process.cwd(), '.s', 'zip');
     const excludes = [path.join('.s', 'zip'), '.DS_Store'];
+    const outputFilePath = path.join(process.cwd(), '.s', 'zip');
     await zip({
       codeUri: localResolvedSrc,
       outputFileName,
@@ -233,7 +233,7 @@ export default class Upload extends CommandBase {
           }
         }
         next();
-      }, 5);
+      }, 20);
 
       unzipQueue.drain(() => {
         unZippingVm?.stop();

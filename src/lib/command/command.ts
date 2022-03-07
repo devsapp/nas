@@ -10,7 +10,7 @@ export default class Command extends CommandBase {
       const commandResponse = await super.callCommands(serviceName, cmd);
       commandVm.succeed();
       logger.debug(`command cmd res: ${JSON.stringify(commandResponse)}`);
-  
+
       if (commandResponse?.data?.stdout) {
         logger.log(commandResponse.data.stdout || '');
       }
