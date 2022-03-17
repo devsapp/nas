@@ -54,7 +54,7 @@ export default class FcDeploy {
 
       // 检测版本是否有变化
       if (!data?.description.includes(`VERSION: ${version}`)) {
-        logger.log(`new version is ${version}, old version is ${data?.description.split('VERSION:')[1]}`);
+        logger.log(`Helper service new version is ${version}, old version is${data?.description.split('VERSION:')[1]}, need update.`);
         return false;
       }
 

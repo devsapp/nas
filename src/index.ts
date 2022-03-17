@@ -114,7 +114,7 @@ export default class NasCompoent extends Base {
     const commandData: any = core.commandParse(inputs, APTS);
     logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
     if (commandData.data?.help && !args?.includes('-lh')) {
-      return core.help();
+      return core.help('');
     }
 
     checkInputs(props);
@@ -146,7 +146,7 @@ export default class NasCompoent extends Base {
     const commandData: any = core.commandParse(inputs, apts);
     logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
     if (commandData.data?.help) {
-      return core.help();
+      return core.help('');
     }
 
     checkInputs(props);
@@ -182,7 +182,7 @@ export default class NasCompoent extends Base {
     const commandData: any = core.commandParse(inputs, apts);
     logger.debug(`Command data is: ${JSON.stringify(commandData)}`);
     if (commandData.data?.help) {
-      return core.help();
+      return core.help('');
     }
 
     checkInputs(props);
@@ -277,7 +277,7 @@ export default class NasCompoent extends Base {
       access: inputs.credentials?.Alias || inputs.project?.access,
       credentials: inputs.credentials,
       region: inputs.props?.regionId,
-      timeout: 1800,
+      timeout: 3600,
     };
     const client = await fcCore.makeFcClient(props);
     client.get = async (path, query, headers) => {
