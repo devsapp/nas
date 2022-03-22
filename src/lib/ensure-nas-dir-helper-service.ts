@@ -9,7 +9,7 @@ import logger from '../common/logger';
 
 const FUNCTION_NAME = 'nas_dir_checker';
 const getServiceName = (name: string) => `_FC_NAS_${name}-ensure-nas-dir-exist-service`;
-const getDefaultDescription = (name) => `当前资源由Serverless Devs自动创建，用于确保绑定到函数计算的 nas 目录存在，与函数服务资源【${name}】关联`;
+const getDefaultDescription = (name) => `The current resource is automatically created by Serverless Devs to operate NAS and is associated with the function service resource [${name}].`;
 const version = getCodeVersion();
 
 export default class EnsureNasDirHelperService extends FcDeploy {

@@ -10,7 +10,7 @@ const zipFileName = `nas-server-${version}.zip`;
 const NAS_HELPER_SERVERVICE_MEMORY_SIZE = parseInt(process.env.NAS_HELPER_SERVERVICE_MEMORY_SIZE || '1536', 10); // 操作 nas 辅助函数的内存大小
 
 export const getServiceName = (name: string) => `_FC_NAS_${name}`;
-export const getDefaultDescription = (name) => `当前资源由Serverless Devs自动创建，用于操作 nas，与函数服务资源【${name}】关联`;
+export const getDefaultDescription = (name) => `The current resource is automatically created by Serverless Devs to operate NAS and is associated with the function service resource [${name}].`;
 export const NAS_OPERATION_HELPER_FUNCTION_NAME = 'nas_dir_checker'; // 操作 nas 辅助函数的函数名称
 
 export default class NasOperationInitHelperService extends FcDeploy {
