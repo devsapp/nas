@@ -4,6 +4,7 @@ import { nasClient } from './utils/client';
 import { ICredentials, IDeployProps, IRemoveProps, isVpcConfig, IVpcConfig } from '../interface';
 import logger from '../common/logger';
 import { promptForConfirmContinue, sleep } from './utils/utils';
+import { writeCreatCache } from './utils/write-creat-cache';
 
 const REQUESTOPTION = {
   method: 'POST',
@@ -39,9 +40,15 @@ export default class Nas {
   readonly assumeYes: boolean;
   readonly nasClient: any;
   readonly regionId: string;
+  readonly accountID: string;
+  readonly serviceName: string;
+  readonly configPath: string;
 
-  constructor(regionId: string, profile: ICredentials, assumeYes: boolean) {
+  constructor(regionId: string, profile: ICredentials, assumeYes: boolean, serviceName?: string, configPath?: string) {
     this.regionId = regionId;
+    this.accountID = profile.AccountID;
+    this.serviceName = serviceName;
+    this.configPath = configPath;
     this.assumeYes = assumeYes;
     this.nasClient = nasClient(regionId, profile);
   }
@@ -216,7 +223,13 @@ export default class Nas {
 
     logger.debug(`Call CreateFileSystem params is: ${JSON.stringify(params)}.`);
     const rs = await this.nasClient.request('CreateFileSystem', params, REQUESTOPTION);
-
+    await writeCreatCache({
+      accountID: this.accountID,
+      region: this.regionId,
+      serviceName: this.serviceName,
+      configPath: this.configPath,
+      fileSystemId: rs.FileSystemId,
+    });
     return rs.FileSystemId;
   }
 
@@ -240,6 +253,13 @@ export default class Nas {
     const mountTargetDomain = rs.MountTargetDomain;
 
     await this.waitMountPointUntilAvaliable(fileSystemId, mountTargetDomain);
+    await writeCreatCache({
+      accountID: this.accountID,
+      region: this.regionId,
+      serviceName: this.serviceName,
+      configPath: this.configPath,
+      mountTargetDomain,
+    });
 
     return mountTargetDomain;
   }
