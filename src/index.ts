@@ -47,7 +47,7 @@ export default class NasCompoent extends Base {
     this.reportComponent('deploy', credentials.AccountID);
 
     if (_.isEmpty(mountPoints)) {
-      const nas = new Nas(regionId, credentials, commandData.data?.y);
+      const nas = new Nas(regionId, credentials, commandData.data?.y, serviceName, inputs.path?.configPath);
       const { mountPointDomain, fileSystemId } = await nas.init(inputsCopy.props);
 
       const reportContent = { region: regionId, mountPointDomain, fileSystemId };
