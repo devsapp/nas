@@ -10,7 +10,7 @@ import readDirRecursive, { chunk } from '../utils/read-dir-recursive';
 import CommandBase from './command-base';
 import logger from '../../common/logger';
 
-const { spinner, zip, fse: fs, rimraf } = core;
+const { spinner, zip, fse: fs, rimraf, getRootHome } = core;
 
 interface IApts {
   localDir: string;
@@ -92,13 +92,13 @@ export default class Upload extends CommandBase {
     override: boolean,
   ) {
     const outputFileName = `${path.basename(path.resolve(localResolvedSrc))}.zip`;
-    const outputFilePath = path.join(process.cwd(), '.s', 'zip');
-    const excludes = [path.join('.s', 'zip'), '.DS_Store'];
+    const outputFilePath = path.join(getRootHome(), 'cache', 'zip', serviceName);
+
     await zip({
       codeUri: localResolvedSrc,
+      ignoreFiles: ['.nasignore'],
       outputFileName,
       outputFilePath,
-      exclude: excludes,
     });
 
     logger.debug(`Checking NAS tmp dir ${actualDstPath}`);
@@ -110,7 +110,7 @@ export default class Upload extends CommandBase {
     await this.uploadFile(localZipFilePath, nasZipFilePath, serviceName);
 
     const unZippingVm = spinner(`unzipping file: ${nasZipFilePath}`);
-    const srcPathFiles = await readDirRecursive(localResolvedSrc, excludes);
+    const srcPathFiles = await readDirRecursive(localResolvedSrc);
     await this.unzipNasFileParallel(
       serviceName,
       actualDstPath,
