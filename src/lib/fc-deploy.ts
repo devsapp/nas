@@ -34,7 +34,8 @@ export default class FcDeploy {
   async remove(inputs: IInputs) {
     try {
       const { data } = await this.fcClient.getService(inputs.props.service.name);
-      if (!data?.description.startsWith('当前资源由Serverless Devs自动创建，')) {
+      const description = data?.description || '';
+      if (!(description.startsWith('当前资源由Serverless Devs自动创建，') || description.startsWith('The current resource is automatically created by Serverless Devs to operate'))) {
         return;
       }
       const fc = await core.loadComponent('devsapp/fc');
