@@ -5,8 +5,7 @@ import _ from 'lodash';
 import md5File from 'md5-file';
 import { ICommandProps } from '../../interface';
 import { resolveLocalPath } from '../utils/utils';
-import { getFileStat, splitRangeBySize } from '../utils/file';
-import readDirRecursive, { chunk } from '../utils/read-dir-recursive';
+import { getFileStat, splitRangeBySize, IGNORE_FILE_NAME, readDirRecursive, chunk, copyIgnoreFile, removeIgnoreFile } from '../utils/file';
 import CommandBase from './command-base';
 import logger from '../../common/logger';
 
@@ -17,6 +16,7 @@ interface IApts {
   fcDir: string;
   recursive: boolean;
   override: boolean;
+  ignoreFilePath?: string;
 }
 
 interface IDstStats {
@@ -31,7 +31,7 @@ interface IDstStats {
 export default class Upload extends CommandBase {
   async cpFromLocalToNas(props: ICommandProps, apts: IApts) {
     const { serviceName, userId = 10003, groupId = 10003 } = props;
-    const { localDir, fcDir, recursive, override } = apts;
+    const { localDir, fcDir, recursive, override, ignoreFilePath } = apts;
     const localResolvedSrc = resolveLocalPath(localDir);
     const localFileStat = await getFileStat(localResolvedSrc);
     if (!localFileStat) {
@@ -65,12 +65,16 @@ export default class Upload extends CommandBase {
     }
 
     if (isDirectory) {
+      await copyIgnoreFile(ignoreFilePath, localResolvedSrc);
+
       await this.uploadFolder(
         localResolvedSrc,
         actualDstPath,
         serviceName,
         override,
       );
+
+      await removeIgnoreFile(localResolvedSrc);
     } else if (localFileStat.isFile()) {
       await this.uploadFile(localResolvedSrc, actualDstPath, serviceName);
     } else {
@@ -96,7 +100,7 @@ export default class Upload extends CommandBase {
 
     await zip({
       codeUri: localResolvedSrc,
-      ignoreFiles: ['.nasignore'],
+      ignoreFiles: IGNORE_FILE_NAME,
       outputFileName,
       outputFilePath,
     });

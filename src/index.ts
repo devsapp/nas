@@ -176,6 +176,7 @@ export default class NasCompoent extends Base {
     logger.debug(`new input.props: ${JSON.stringify(props)}, inputs.args: ${args}`);
 
     const apts = {
+      string: 'ignore-file',
       boolean: ['recursive', 'help', 'override'],
       alias: { recursive: 'r', override: 'o', help: 'h' },
     };
@@ -186,8 +187,7 @@ export default class NasCompoent extends Base {
     }
 
     checkInputs(props);
-    const { recursive } = commandData.data || {};
-    const override = commandData.data?.override;
+    const { recursive, override, 'ignore-file': ignoreFilePath } = commandData.data || {};
     const [localDir, fcDir] = commandData.data?._ || [];
     if (_.isEmpty(localDir) || _.isEmpty(fcDir)) {
       throw new Error(`Handle the exception of input parameters, localDir is ${localDir}, fcDir is ${fcDir}.\nPlease execute '$ s nas upload -h' to view the example`);
@@ -197,7 +197,7 @@ export default class NasCompoent extends Base {
     await this.initHelperService(inputs);
 
     const upload = new Upload(credentials, props.regionId, this.fcClient);
-    await upload.cpFromLocalToNas(props, { localDir, fcDir: argReplace(fcDir), recursive, override });
+    await upload.cpFromLocalToNas(props, { localDir, fcDir: argReplace(fcDir), recursive, override, ignoreFilePath });
   }
 
   /**
