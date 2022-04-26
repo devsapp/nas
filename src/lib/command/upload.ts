@@ -65,12 +65,7 @@ export default class Upload extends CommandBase {
     }
 
     if (isDirectory) {
-      await this.uploadFolder(
-        localResolvedSrc,
-        actualDstPath,
-        serviceName,
-        override,
-      );
+      await this.uploadFolder(localResolvedSrc, actualDstPath, serviceName, override);
     } else if (localFileStat.isFile()) {
       await this.uploadFile(localResolvedSrc, actualDstPath, serviceName);
     } else {
@@ -168,7 +163,7 @@ export default class Upload extends CommandBase {
     );
 
     // 修改文件权限
-    const filePermission = `0${ (stat.mode & parseInt('777', 8)).toString(8)}`;
+    const filePermission = `0${(stat.mode & parseInt('777', 8)).toString(8)}`;
     const cmd = `chmod ${filePermission} ${actualDstPath}`;
     logger.debug(`update file permission: ${cmd}`);
     const permissionRes = await super.callCommands(serviceName, cmd);
@@ -209,7 +204,11 @@ export default class Upload extends CommandBase {
           logger.debug(JSON.stringify(res));
         } catch (error) {
           // zip 中存在特殊文件名，例如 $data.js，或者没有权限
-          if (error.message && (error.message?.includes('filename not matched') || error.message.toLowerCase()?.includes('permission denied'))) {
+          if (
+            error.message &&
+            (error.message?.includes('filename not matched') ||
+              error.message.toLowerCase()?.includes('permission denied'))
+          ) {
             unZippingVm?.fail();
             return logger.error(`Unzipping file error: ${error.code || ''} ${error.message}`);
           }
@@ -275,7 +274,11 @@ export default class Upload extends CommandBase {
 
           const query = { nasFile: nasZipFile, fileStart: start.toString() };
           const res = await this.fcClient.post(urlPath, body, {}, query);
-          logger.debug(`Call ${urlPath} query is: ${JSON.stringify(query)}, response is: ${JSON.stringify(res)}`);
+          logger.debug(
+            `Call ${urlPath} query is: ${JSON.stringify(query)}, response is: ${JSON.stringify(
+              res,
+            )}`,
+          );
           if (res.data.error) {
             throw new Error(res.data.error);
           }
@@ -315,7 +318,6 @@ export default class Upload extends CommandBase {
       dstPathIsFile, // 远端是个文件
       dstPathEndWithSlash, // 斜线结尾
     } = dstStats;
-    const localPathEndWithSlash = localFilePath.endsWith('/');
     const newDstPath = path.posix.join(dstPath, path.basename(localFilePath));
 
     const localDirButDstFileError = `nas upload: ${newDstPath}: Not a directory`;
@@ -331,17 +333,8 @@ export default class Upload extends CommandBase {
     // 远端地址已经存在
     if (dstPathExists) {
       if (isDirectory) {
-        // 如果本地是文件夹并且不以 / 结尾，上传`当前目录下`所有的文件到远端地址
-        if (localPathEndWithSlash) {
-          return dstPath;
-        }
-
-        // 重新 check newDstPath 是否在远端存在
-        const { data: stats } = await super.callStats(serviceName, newDstPath);
-        if (!stats.exists || stats.isDir) {
-          return newDstPath;
-        }
-        throw new Error(localDirButDstFileError);
+        // 如果本地是文件夹上传`当前目录下`所有的文件到远端地址
+        return dstPath;
       }
       // 如果本地不是文件夹，check 新的目标地址
       if (dstPathIsDir) {
@@ -373,14 +366,15 @@ export default class Upload extends CommandBase {
   /**
    * 检测上传地址是否可写
    */
-  private checkWritePerm(stats: any, userId: number, groupId: number, fcDir: string): string | undefined {
+  private checkWritePerm(
+    stats: any,
+    userId: number,
+    groupId: number,
+    fcDir: string,
+  ): string | undefined {
     if (!stats.exists) return undefined;
 
-    const {
-      mode,
-      UserId: nasPathUserId,
-      GroupId: nasPathGroupId,
-    } = stats;
+    const { mode, UserId: nasPathUserId, GroupId: nasPathGroupId } = stats;
 
     if (nasPathUserId === 0 && nasPathGroupId === 0) {
       return undefined;
@@ -401,7 +395,8 @@ export default class Upload extends CommandBase {
       }
     });
 
-    const moreInformation = 'more information please refer to https://github.com/devsapp/fc/issues/319';
+    const moreInformation =
+      'more information please refer to https://github.com/devsapp/fc/issues/319';
 
     if (!ownerCanWrite && !groupCanWrite && !otherCanWrite) {
       return `${fcDir} has no '-w-' or '-wx' permission, ${moreInformation}`;
@@ -417,7 +412,10 @@ export default class Upload extends CommandBase {
       return `UserId: ${nasPathUserId} and GroupId: ${nasPathGroupId} have no '-w-' or '-wx' permission to ${fcDir}, which may cause permission problem, \
       ${moreInformation}`;
     } else if (
-      !((userId === nasPathUserId && ownerCanWrite) || (groupId === nasPathGroupId && groupCanWrite))
+      !(
+        (userId === nasPathUserId && ownerCanWrite) ||
+        (groupId === nasPathGroupId && groupCanWrite)
+      )
     ) {
       return `UserId: ${userId} and GroupId: ${groupId} in your NasConfig are mismatched with UserId: ${nasPathUserId} and GroupId: ${nasPathGroupId} of ${fcDir}, \
   which may cause permission problem,${moreInformation}`;
