@@ -86,37 +86,6 @@ props: regionId: string;
 serviceName: string; // 主函数的服务名称
 ```
 
-### ensureNasDir
-
-#### 描述
-
-创建确保 nas 目录存在的辅助函数，并确保目录存在<br />​<br />
-
-#### 参数
-
-```typescript
-props:
-  regionId: string;
-  serviceName: string; // 主函数的服务名称
-  role?: string; // 不填写遵循 fc-deploy 的逻辑
-  description?: string;
-
-  vpcConfig:
-    vpcId: string;
-    vSwitchId: string[];
-    securityGroupId: string;
-
-  groupId?: number;
-  userId?: number;
-  mountPoints:
-    - serverAddr: string
-      nasDir: string
-      fcDir: string
-    - serverAddr: string
-      nasDir: string
-      fcDir: string
-```
-
 ### removeEnsureNasDirHelperService
 
 #### 描述

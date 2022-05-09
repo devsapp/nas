@@ -23,5 +23,6 @@ build: clean install
 
 package: build
 	-rm -rf ../../../dist/helper-service-code/nas-server-*.zip
+	-mkdir -p ../../../dist/helper-service-code
 	cd dist && zip -r ../../../../dist/helper-service-code/nas-server-"$$(<./VERSION)".zip  * .[^.]* -x "*.zip"
 	cp -f ./dist/VERSION ../../../dist/helper-service-code/VERSION

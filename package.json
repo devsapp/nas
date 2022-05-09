@@ -33,7 +33,7 @@
     "build": "npm run fix && npm run lint && npm run esbuild",
     "esbuild": "esbuild src/index.ts --bundle --log-level=error --minify --platform=node --format=cjs --target=node10.4 --external:@serverless-devs/core --outfile=dist/index.js",
     "postbuild": "npm run package-zip",
-    "package-zip": "make -C ./src/helper-service-code/ensure-nas-dir-exist package && make -C ./src/helper-service-code/nas-server package",
+    "package-zip": "make -C ./src/helper-service-code/nas-server package",
     "test": "jest",
     "test:cov": "jest --coverage",
     "lint": "f2elint scan",

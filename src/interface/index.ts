@@ -6,7 +6,6 @@ import {
   ICommandProps,
 } from './props';
 
-
 export * from './props';
 export * from './resource';
 
@@ -33,10 +32,6 @@ export interface RemoveInputs extends IInputs {
 
 export interface CommandInputs extends IInputs {
   props: ICommandProps;
-}
-
-export interface EnsureNasDirHelperServiceInputs extends IInputs {
-  props: InitHelperServiceProps;
 }
 
 export interface NasOperationInitHelperServiceInputs extends IInputs {
