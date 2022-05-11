@@ -10,6 +10,8 @@ const REQUESTOPTION = {
   method: 'POST',
 };
 
+const createMountCheckRetry = _.parseInt(process.env.CHECK_NAS_STATUS_RETRY || '30');
+
 interface FileSystemKey {
   fileSystemId: string;
   mountTargetDomain?: string;
@@ -349,9 +351,9 @@ export default class Nas {
         REQUESTOPTION,
       );
       status = rs.MountTargets?.MountTarget[0]?.Status;
-      logger.debug(`nas status is: ${ status}`);
+      logger.debug(`nas status is: ${status}`);
       logger.debug(`Nas mount target domain already created, waiting for status to be 'Active', now is ${status}`);
-    } while (count < 15 && status !== 'Active');
+    } while (count < createMountCheckRetry && status !== 'Active');
 
     if (status !== 'Active') {
       throw new Error(
