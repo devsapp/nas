@@ -147,12 +147,13 @@ export default class Upload extends CommandBase {
     // 创建文件
     const createVm = spinner(`Create file: ${actualDstPath}\n`);
     const { data } = await super.callCommands(serviceName, createFileCmd);
-    logger.debug(JSON.stringify(data));
+    logger.debug(`createFile res: ${JSON.stringify(data)}`);
     if (data.error) {
       createVm?.fail();
       logger.log('');
       throw new Error(data.error);
     }
+
     createVm?.stop();
     // 分片上传
     await this.uploadFileByChunk(
@@ -260,6 +261,10 @@ export default class Upload extends CommandBase {
       const vm = spinner('Uploading file to nas');
       const uploadQueue = async.queue(async (offSet, callback) => {
         try {
+          await super.callCommands(serviceName, `ls -al /mnt/auto/`);
+        } catch (_ex) { }
+
+        try {
           const { start, size } = offSet;
           const urlPath = super.getChunkFileUploadReqPath(serviceName);
 
@@ -283,7 +288,7 @@ export default class Upload extends CommandBase {
             throw new Error(res.data.error);
           }
         } catch (error) {
-          logger.error(`upload error : ${error.message}`);
+          logger.error(`upload error ${error.code}-${error.status}: ${error.message}`);
           logger.debug(error.stack);
           vm?.fail();
           // TODO：RETRY
