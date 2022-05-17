@@ -27,13 +27,13 @@
     "typescript": "^3.9.7"
   },
   "scripts": {
-    "start": "npm run dev",
-    "dev": "npm run prebuild && npm run package-zip && npx tsc -w -p tsconfig.json",
+    "start": "npm run prebuild && npm run package-zip && npm run watch",
+    "watch": "npx tsc -w -p tsconfig.json",
     "prebuild": "rm -rf node_modules && rm -rf package-lock.json && npm i && rimraf dist",
     "build": "npm run fix && npm run lint && npm run esbuild",
     "esbuild": "esbuild src/index.ts --bundle --log-level=error --minify --platform=node --format=cjs --target=node10.4 --external:@serverless-devs/core --outfile=dist/index.js",
     "postbuild": "npm run package-zip",
-    "package-zip": "make -C ./src/helper-service-code/ensure-nas-dir-exist package && make -C ./src/helper-service-code/nas-server package",
+    "package-zip": "make -C ./src/helper-service-code/nas-server package",
     "test": "jest",
     "test:cov": "jest --coverage",
     "lint": "f2elint scan",

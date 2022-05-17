@@ -35,7 +35,14 @@ export default class FcDeploy {
     try {
       const { data } = await this.fcClient.getService(inputs.props.service.name);
       const description = data?.description || '';
-      if (!(description.startsWith('当前资源由Serverless Devs自动创建，') || description.startsWith('The current resource is automatically created by Serverless Devs to operate'))) {
+      if (
+        !(
+          description.startsWith('当前资源由Serverless Devs自动创建，') ||
+          description.startsWith(
+            'The current resource is automatically created by Serverless Devs to operate',
+          )
+        )
+      ) {
         return;
       }
       const fc = await core.loadComponent('devsapp/fc');
@@ -49,13 +56,22 @@ export default class FcDeploy {
     return await core.getState(`${this.accountId}-${this.region}-${name}`);
   }
 
-  async versionOrConfigNoChange(serviceName: string, version: string, vpcConfig: IVpcConfig, nasConfig: INasConfig): Promise<boolean> {
+  async versionOrConfigNoChange(
+    serviceName: string,
+    version: string,
+    vpcConfig: IVpcConfig,
+    nasConfig: INasConfig,
+  ): Promise<boolean> {
     try {
       const { data } = await this.fcClient.getService(serviceName);
 
       // 检测版本是否有变化
       if (!data?.description.includes(`VERSION: ${version}`)) {
-        logger.log(`Helper service new version is ${version}, old version is${data?.description.split('VERSION:')[1]}, need update.`);
+        logger.log(
+          `Helper service new version is ${version}, old version is${
+            data?.description.split('VERSION:')[1]
+          }, need update.`,
+        );
         return false;
       }
 
@@ -70,8 +86,16 @@ export default class FcDeploy {
         serverAddr: `${serverAddr}:${makeSureNasUriStartWithSlash(nasDir)}`,
         mountDir: fcDir,
       }));
-      logger.debug(`data.vpcConfig, vpcConfig:: ${JSON.stringify(data.vpcConfig)} ${JSON.stringify(vpcConfig)}`);
-      logger.debug(`data.nasConfig, nasConfig:: ${JSON.stringify(data.nasConfig)} ${JSON.stringify(nasConfigCopy)}`);
+      logger.debug(
+        `data.vpcConfig, vpcConfig:: ${JSON.stringify(data.vpcConfig)} ${JSON.stringify(
+          vpcConfig,
+        )}`,
+      );
+      logger.debug(
+        `data.nasConfig, nasConfig:: ${JSON.stringify(data.nasConfig)} ${JSON.stringify(
+          nasConfigCopy,
+        )}`,
+      );
       return _.isEqual(data.vpcConfig, vpcConfig) && _.isEqual(data.nasConfig, nasConfigCopy);
     } catch (ex) {
       logger.debug(`get service error: ${ex?.code}, ${ex?.message}`);
