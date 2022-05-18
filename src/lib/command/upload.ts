@@ -261,7 +261,7 @@ export default class Upload extends CommandBase {
       const vm = spinner('Uploading file to nas');
       const uploadQueue = async.queue(async (offSet, callback) => {
         try {
-          await super.callCommands(serviceName, `ls -al /mnt/auto/`);
+          await super.callCommands(serviceName, 'ls -al /mnt/auto/');
         } catch (_ex) { }
 
         try {
