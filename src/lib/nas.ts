@@ -39,6 +39,7 @@ export default class Nas {
     }
   }
 
+  fileSystemType: 'standard' | 'extreme';
   readonly assumeYes: boolean;
   readonly nasClient: any;
   readonly regionId: string;
@@ -53,6 +54,7 @@ export default class Nas {
     this.configPath = configPath;
     this.assumeYes = assumeYes;
     this.nasClient = nasClient(regionId, profile);
+    this.fileSystemType = 'standard';
   }
 
   /**
@@ -68,7 +70,13 @@ export default class Nas {
       zoneId,
       storageType,
     } = props;
-    let { fileSystemId, mountTargetDomain } = (await this.findNasFileSystem(nasName, zoneId, vpcConfig)) || {};
+    if (['standard', 'advance'].includes(storageType)) {
+      // 存储类型。
+      // 当 FileSystemType=standard 时，取值：Performance（性能型） 、 Capacity（容量型）。
+      // 当 FileSystemType=extreme 时，取值：standard（标准型） 、 advance（高级型）。
+      this.fileSystemType = 'extreme';
+    }
+    let { fileSystemId, mountTargetDomain } = (await this.findNasFileSystem(nasName, undefined, vpcConfig)) || {};
 
     await logger.task('Creating', [
       {
@@ -80,6 +88,20 @@ export default class Nas {
           logger.debug(
             `Default nas file system has been generated, fileSystemId is: ${fileSystemId}`,
           );
+          await this.waitFileSystemUntilAvaliable(fileSystemId);
+          // 后面 nas 那边修复这个问题可以删掉这个逻辑
+          try {
+            // 极速盘存在创建后 Description 丢失的问题，在这尝试修改一下
+            await this.nasClient.request(
+              'ModifyFileSystem',
+              { RegionId: regionId, FileSystemId: fileSystemId, Description: nasName },
+              REQUESTOPTION,
+            );
+          } catch (err) {
+            logger.debug(err);
+            logger.log(`\n修改文件描述失败，请前往 https://nasnext.console.aliyun.com/${regionId}/filesystem 查看 ${fileSystemId} 的名称是否是 ${nasName}。如果不是请求手动修改，以防下次复用资源失败。`, 'yellow');
+            logger.log(`\nFailed to modify file description. Please go to https://nasnext.console.aliyun.com/${regionId}/filesystem check if the name of ${fileSystemId} is ${nasName}。If it is not a request for manual modification, in case the next reuse of resources fails。`, 'yellow');
+          }
         },
       },
       {
@@ -131,6 +153,8 @@ export default class Nas {
       logger.debug(`findFileSystemWithVpcConfig res: ${JSON.stringify(findRs)}`);
       return findRs;
     }
+
+    return {} as FileSystemKey;
   }
 
   private async removeAccordingToFileSystemId(fileSystemId: string) {
@@ -209,7 +233,7 @@ export default class Nas {
   private async createNasFileSystem(regionId: string, zoneId: string, description: string, storageType: string) {
     const zones = await this.nasClient.request(
       'DescribeZones',
-      { RegionId: regionId },
+      { RegionId: regionId, FileSystemType: this.fileSystemType },
       REQUESTOPTION,
     );
     logger.debug(`Call DescribeZones RegionId is: ${regionId}, response is: ${JSON.stringify(zones)}`);
@@ -219,12 +243,15 @@ export default class Nas {
       RegionId: regionId,
       StorageType: storageType,
       Description: description,
+      FileSystemType: this.fileSystemType,
+      Capacity: 100,
       ZoneId: zoneId,
       ProtocolType: 'NFS',
     };
 
     logger.debug(`Call CreateFileSystem params is: ${JSON.stringify(params)}.`);
     const rs = await this.nasClient.request('CreateFileSystem', params, REQUESTOPTION);
+    logger.debug(`Call CreateFileSystem response is: ${JSON.stringify(rs)}.`);
     await writeCreatCache({
       accountID: this.accountID,
       region: this.regionId,
@@ -272,11 +299,23 @@ export default class Nas {
     region: string,
     storageType?: string,
   ): Promise<string> {
+    let hasZones = false;
     for (const item of zones) {
       if (item.ZoneId === zoneId) {
+        hasZones = true;
         if (storageType) {
-          if (_.isEmpty(item[storageType].Protocol)) {
-            throw new Error(`There is no ${storageType} storage type in this area.`);
+          // 极速和通用格式不一样，单独处理
+          if (this.fileSystemType === 'extreme') {
+            const instanceTypes = _.get(item, 'InstanceTypes.InstanceType', []);
+            const i = _.find(instanceTypes, { StorageType: storageType });
+            if (_.isEmpty(i)) {
+              continue;
+            }
+            return storageType;
+          }
+
+          if (_.isEmpty(item[storageType]?.Protocol)) {
+            continue;
           }
           return storageType;
         }
@@ -296,6 +335,10 @@ export default class Nas {
         }
         throw new Error(`No NAS service available under region ${region}.`);
       }
+    }
+
+    if (hasZones) {
+      throw new Error(`There is no ${storageType} storage type in this area.`);
     }
 
     throw new Error(`There is no zoneId ${zoneId} available for the region ${region}.`);
@@ -358,6 +401,52 @@ export default class Nas {
     if (status !== 'Active') {
       throw new Error(
         `Timeout while waiting for MountPoint ${mountTargetDomain} status to be 'Active',please try again.`,
+      );
+    }
+  }
+
+  private async waitFileSystemUntilAvaliable(fileSystemId: string) {
+    let count = 0;
+    let status: string;
+
+    do {
+      count++;
+
+      await sleep(2000);
+
+      const rs = await this.nasClient.request(
+        'DescribeFileSystems',
+        {
+          RegionId: this.regionId,
+          FileSystemType: this.fileSystemType,
+          FileSystemId: fileSystemId,
+          PageSize: 100,
+        },
+        REQUESTOPTION,
+      );
+
+      // 文件系统状态。包括：
+      //   Pending：当前文件系统正在处理任务中。
+      //   Extending：当前文件系统扩容中。
+      //   Running：当前文件系统可用，当状态为Running时才可以进行后续操作（例如：创建挂载点等）。
+      //   Stopped：当前文件系统不可用。
+      //   Stopping：当前文件系统停机中。
+      //   Deleting：当前文件系统删除中。
+      status = _.get(rs, 'FileSystems.FileSystem.0.Status');
+      logger.debug(`${count}: nas fileSystemId ${fileSystemId} status is: ${status}`);
+      if (_.isEmpty(status)) {
+        logger.debug('status is empty.Program attempting to continue processing');
+        return;
+      } else if (['Running'].includes(status)) {
+        return;
+      } else if (['Stopped', 'Stopping', 'Deleting'].includes(status)) {
+        throw new Error(`Detect that the status of ${fileSystemId} is ${status} and is no longer available. Please try again`);
+      }
+    } while (count < (createMountCheckRetry * 3));
+
+    if (status !== 'Running') {
+      throw new Error(
+        `Timeout while waiting for FileSystemId ${fileSystemId} status to be 'Running',please try again.`,
       );
     }
   }
