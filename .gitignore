@@ -13,7 +13,6 @@ download
 .vscode
 .cache
 */test
-package-lock.json
 **/nas-server/dist
 examples/**/.s
 src/helper-service-code/**/dist
