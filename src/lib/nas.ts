@@ -452,7 +452,17 @@ export default class Nas {
   }
 
   private async DescribeFileSystems(params: { [key: string]: any }) {
-    return await this.nasClient.request('DescribeFileSystems', params, REQUESTOPTION);
+    try {
+      return await this.nasClient.request('DescribeFileSystems', params, REQUESTOPTION);
+    } catch (ex) {
+      if (ex.code === 'User.Disabled') {
+        logger.debug(' Error: Your account does not open Nas Service yet or balance is insufficient');
+        const rs = await this.nasClient.request('OpenNASService');
+        logger.debug(`open nas success: ${JSON.stringify(rs)}`);
+        return await this.nasClient.request('DescribeFileSystems', params, REQUESTOPTION);
+      }
+      throw ex;
+    }
   }
 
   private async deleteMountTarget(fileSystemId: string, mountTargetDomain: string) {
